@@ -72,7 +72,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F5F0] flex flex-col items-center justify-center px-4 py-10">
-      {/* Logo / Brand */}
+      {/* Logo */}
       <div className="mb-8 text-center">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#2D6A4F] mb-3">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -88,11 +88,8 @@ export default function LoginPage() {
       {/* Card */}
       <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-[#E8E4DC] p-6 md:p-8">
         <h2 className="text-xl font-semibold text-[#1A1A2E] mb-1">Entrar</h2>
-        <p className="text-sm text-[#6B7280] mb-6">
-          Continue de onde parou.
-        </p>
+        <p className="text-sm text-[#6B7280] mb-6">Continue de onde parou.</p>
 
-        {/* Erro do servidor */}
         {serverError && (
           <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
             {serverError}
@@ -126,10 +123,7 @@ export default function LoginPage() {
               <label htmlFor="password" className="block text-sm font-medium text-[#374151]">
                 Senha
               </label>
-              <Link
-                href="/forgot-password"
-                className="text-xs text-[#2D6A4F] hover:underline font-medium"
-              >
+              <Link href="/forgot-password" className="text-xs text-[#2D6A4F] hover:underline font-medium">
                 Esqueceu a senha?
               </Link>
             </div>
@@ -145,12 +139,10 @@ export default function LoginPage() {
                 errors.password ? "border-red-400 bg-red-50" : "border-[#E8E4DC] bg-[#FAFAF8]"
               }`}
             />
-            {errors.password && (
-              <p className="mt-1.5 text-xs text-red-600">{errors.password}</p>
-            )}
+            {errors.password && <p className="mt-1.5 text-xs text-red-600">{errors.password}</p>}
           </div>
 
-          {/* Submit */}
+          {/* Botão */}
           <button
             type="submit"
             disabled={loading}
@@ -191,7 +183,6 @@ export default function LoginPage() {
           {googleLoading ? "Aguarde..." : "Continuar com Google"}
         </button>
 
-        {/* Link para cadastro */}
         <p className="text-center text-sm text-[#6B7280] mt-6">
           Não tem conta?{" "}
           <Link href="/signup" className="text-[#2D6A4F] font-medium hover:underline">

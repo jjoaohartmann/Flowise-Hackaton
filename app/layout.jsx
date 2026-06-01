@@ -16,8 +16,7 @@ const dmSans = DM_Sans({
 
 export const metadata = {
   title: "Flowise — Produtividade com equilíbrio",
-  description:
-    "Plataforma que promove equilíbrio entre produtividade, saúde mental e uso consciente da tecnologia.",
+  description: "Plataforma que promove equilíbrio entre produtividade, saúde mental e uso consciente da tecnologia.",
 };
 
 export default function RootLayout({ children }) {
