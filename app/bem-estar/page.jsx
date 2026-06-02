@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
+import { usePlan } from "@/lib/usePlan";
 import {
   saveEmotion,
   loadRecentEmotions,
@@ -34,6 +35,7 @@ const ROUTINE_DEFAULT = {
 
 export default function BemEstarPage() {
   const { user, loading } = useAuth();
+  const { isPro }         = usePlan();
   const router   = useRouter();
   const pathname = usePathname();
 
@@ -159,9 +161,13 @@ export default function BemEstarPage() {
           <span className="font-semibold text-[#1A1A2E] text-sm">Flowise</span>
           <span className="text-[10px] border border-[#E8E4DC] text-[#9CA3AF] px-2 py-0.5 rounded-full">beta</span>
         </div>
-        <span className="text-xs text-[#9CA3AF] hidden sm:block truncate max-w-[160px]">
-          {user?.email}
-        </span>
+        <Link href="/planos" className={`text-xs font-semibold rounded-full px-3 py-1 border transition-colors ${
+          isPro
+            ? "bg-[#2D6A4F] text-white border-[#2D6A4F]"
+            : "text-[#6B7280] border-[#E8E4DC] hover:border-[#2D6A4F] hover:text-[#2D6A4F]"
+        }`}>
+          {isPro ? "✓ Pro" : "Upgrade Pro ✨"}
+        </Link>
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-6 flex flex-col gap-5 pb-24">
@@ -418,45 +424,35 @@ export default function BemEstarPage() {
       </main>
 
       {/* Nav inferior */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E8E4DC] flex justify-around items-center py-2 px-4 z-40">
-        <Link
-          href="/dashboard"
-          className={`flex flex-col items-center gap-0.5 transition ${
-            pathname === "/dashboard" ? "text-[#2D6A4F]" : "text-[#9CA3AF] hover:text-[#2D6A4F]"
-          }`}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            <polyline points="9 22 9 12 15 12 15 22"/>
-          </svg>
-          <span className="text-[10px] font-medium">Início</span>
-        </Link>
-
-        <Link
-          href="/bem-estar"
-          className={`flex flex-col items-center gap-0.5 transition ${
-            pathname === "/bem-estar" ? "text-[#2D6A4F]" : "text-[#9CA3AF] hover:text-[#2D6A4F]"
-          }`}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-          </svg>
-          <span className="text-[10px] font-medium">Bem-estar</span>
-        </Link>
-
-        <Link
-          href="/relatorios"
-          className={`flex flex-col items-center gap-0.5 transition ${
-            pathname === "/relatorios" ? "text-[#2D6A4F]" : "text-[#9CA3AF] hover:text-[#2D6A4F]"
-          }`}
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <line x1="18" y1="20" x2="18" y2="10"/>
-            <line x1="12" y1="20" x2="12" y2="4"/>
-            <line x1="6" y1="20" x2="6" y2="14"/>
-          </svg>
-          <span className="text-[10px] font-medium">Relatórios</span>
-        </Link>
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E8E4DC] flex z-50">
+        {[
+          {
+            href: "/dashboard",
+            label: "Início",
+            icon: <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M3 12L12 3L21 12V21H15V15H9V21H3V12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>,
+          },
+          {
+            href: "/bem-estar",
+            label: "Bem-estar",
+            icon: <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M12 21C12 21 4 14.5 4 8.5C4 6 6 4 8.5 4C10 4 11.5 4.8 12 6C12.5 4.8 14 4 15.5 4C18 4 20 6 20 8.5C20 14.5 12 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>,
+          },
+          {
+            href: "/relatorios",
+            label: "Relatórios",
+            icon: <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2" /><path d="M8 16V12M12 16V8M16 16V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>,
+          },
+        ].map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 text-xs font-medium transition-colors ${
+              pathname === item.href ? "text-[#2D6A4F]" : "text-[#9CA3AF]"
+            }`}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </Link>
+        ))}
       </nav>
     </div>
   );
