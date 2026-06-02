@@ -143,11 +143,15 @@ export default function AgendamentoPage() {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Protege a rota para manter o comportamento das telas internas do Flowise.
+  // Protege a rota para manter o agendamento exclusivo do Flowise Pro.
   useEffect(() => {
-    if (loading) return;
-    if (!user) router.replace("/login");
-  }, [user, loading, router]);
+    if (loading || planLoading) return;
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+    if (!isPro) router.replace("/planos");
+  }, [user, isPro, loading, planLoading, router]);
 
   async function handleLogout() {
     await logout();
@@ -164,6 +168,8 @@ export default function AgendamentoPage() {
       </div>
     );
   }
+
+  if (!isPro) return null;
 
   return (
     <div className="min-h-screen bg-[#F7F5F0]">
