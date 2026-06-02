@@ -4,11 +4,27 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
-import { loadStreak, updateStreak, completeFocusSession, getMascotLevel } from "@/lib/streak";
+import { loadStreak, updateStreak, completeFocusSession, getMascotLevel, calculateWeeklyConsistency } from "@/lib/streak";
 import FocusTimer from "@/components/FocusTimer";
 import Mascot from "@/components/Mascot";
 import { logout } from "@/lib/auth";
 import { usePlan } from "@/lib/usePlan";
+import { loadRoutine } from "@/lib/bemEstar";
+
+function getMinutesUntilTime(time) {
+  if (!time) return null;
+
+  const [hours, minutes] = time.split(":").map(Number);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+
+  const now = new Date();
+  const target = new Date();
+  target.setHours(hours, minutes, 0, 0);
+
+  if (target < now) target.setDate(target.getDate() + 1);
+
+  return Math.round((target - now) / 60000);
+}
 
 export default function DashboardPage() {
   const { user, loading } = useAuth();
@@ -19,9 +35,12 @@ export default function DashboardPage() {
   const [streakCount,       setStreakCount]       = useState(0);
   const [longestStreak,     setLongestStreak]     = useState(0);
   const [totalFocusMinutes, setTotalFocusMinutes] = useState(0);
+  const [dailyFocusMinutes, setDailyFocusMinutes] = useState(0);
+  const [routine,           setRoutine]           = useState(null);
   const [isTimerRunning,    setIsTimerRunning]    = useState(false);
   const [dataLoading,       setDataLoading]       = useState(true);
   const [toast,             setToast]             = useState(null);
+  const [weeklyConsistency, setWeeklyConsistency] = useState({ weeklyScore: 0, trend: "neutral", advice: "" });
 
   // ── Proteção de rota + carga inicial ──────────────────────
   useEffect(() => {
@@ -32,10 +51,23 @@ export default function DashboardPage() {
       try {
         // updateStreak para acesso diário
         const { streakCount: sc, longestStreak: ls } = await updateStreak(user.uid);
-        const { totalFocusMinutes: tfm }             = await loadStreak(user.uid);
+        const [{ totalFocusMinutes: tfm, dailyFocusMinutes: dfm }, savedRoutine] =
+          await Promise.all([
+            loadStreak(user.uid),
+            loadRoutine(user.uid),
+          ]);
+
         setStreakCount(sc);
         setLongestStreak(ls);
         setTotalFocusMinutes(tfm);
+        setDailyFocusMinutes(dfm);
+        setRoutine(savedRoutine);
+
+        // ── RN-CONSIST-01: Carregar consistência semanal ──
+        if (savedRoutine) {
+          const consistency = await calculateWeeklyConsistency(user.uid, savedRoutine);
+          setWeeklyConsistency(consistency);
+        }
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
       } finally {
@@ -60,12 +92,13 @@ export default function DashboardPage() {
   async function handleSessionComplete(minutesFocused, sessionCount) {
     if (!user) return;
     try {
-      const { streakCount: sc, longestStreak: ls } =
+      const { streakCount: sc, longestStreak: ls, dailyFocusMinutes: dfm } =
         await completeFocusSession(user.uid, minutesFocused);
 
       setStreakCount(sc);
       setLongestStreak(ls);
       setTotalFocusMinutes((prev) => prev + minutesFocused);
+      setDailyFocusMinutes(dfm);
 
       if (sessionCount % 4 === 0) {
         showToast("4 sessões! Hora de uma pausa longa 🎉", "success");
@@ -100,6 +133,18 @@ export default function DashboardPage() {
   }
 
   const mascotLevel = getMascotLevel(streakCount);
+  const dailyGoalHours = Number(routine?.workHours ?? 8);
+  const dailyGoalMinutes = Math.max(1, Math.round(dailyGoalHours * 60));
+  const dailyProgress = Math.min(100, Math.round((dailyFocusMinutes / dailyGoalMinutes) * 100));
+  const overworkReached = dailyFocusMinutes >= dailyGoalMinutes;
+  const minutesUntilSleep = getMinutesUntilTime(routine?.sleep);
+  const showSleepReminder = minutesUntilSleep !== null && minutesUntilSleep >= 0 && minutesUntilSleep <= 30;
+  const formatMinutes = (minutes) => {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h <= 0) return `${m}m`;
+    return `${h}h ${m}m`;
+  };
   const firstName   = user?.displayName?.split(" ")[0] ?? "você";
 
   return (
@@ -150,6 +195,16 @@ export default function DashboardPage() {
       {/* Conteúdo principal */}
       <main className="max-w-5xl mx-auto px-4 py-6 flex flex-col gap-6 pb-24">
 
+        {/* Lembrete de dormir baseado no horario salvo na rotina. */}
+        {showSleepReminder && (
+          <div className="bg-[#1A1A2E] text-white border border-[#1A1A2E] rounded-xl p-4 flex gap-3 items-start">
+            <span className="text-xl flex-shrink-0">🌙</span>
+            <p className="text-sm leading-relaxed">
+              Hora de desacelerar! O Flowise sugere que você comece a se preparar para dormir.
+            </p>
+          </div>
+        )}
+
         {/* Saudação */}
         <div>
           <h1 className="text-xl font-semibold text-[#1A1A2E]">Hora de focar 🎯</h1>
@@ -174,6 +229,76 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Timer + Mascote lado a lado ───────────────────── */}
+        {/* Progresso diario conectado as metas da rotina no Firestore. */}
+        <div className="bg-white rounded-xl border border-[#E8E4DC] p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-[#1A1A2E]">Progresso diário de foco</p>
+              <p className="text-xs text-[#6B7280] mt-1">
+                {formatMinutes(dailyFocusMinutes)} de {formatMinutes(dailyGoalMinutes)} planejados na sua rotina.
+              </p>
+            </div>
+            <span className="text-sm font-bold text-[#2D6A4F]">{dailyProgress}%</span>
+          </div>
+
+          <div className="h-3 bg-[#F7F5F0] border border-[#E8E4DC] rounded-full overflow-hidden mt-4">
+            <div
+              className="h-full bg-[#2D6A4F] rounded-full transition-all duration-700"
+              style={{ width: `${dailyProgress}%` }}
+            />
+          </div>
+
+          <div className="flex justify-between text-[11px] text-[#9CA3AF] mt-2">
+            <span>Hoje</span>
+            <span>Meta saudável</span>
+          </div>
+        </div>
+
+        {/* Alerta amigavel quando a meta saudavel ja foi atingida. */}
+        {overworkReached && (
+          <div className="bg-[#FFF8E6] border border-[#FFE0A0] rounded-xl p-4 flex gap-3">
+            <span className="text-xl flex-shrink-0">⚠️</span>
+            <p className="text-sm text-[#92400E] leading-relaxed">
+              Você atingiu sua meta saudável de foco por hoje! Que tal descansar para evitar a exaustão mental?
+            </p>
+          </div>
+        )}
+
+        {/* ── RN-CONSIST-01: Card de consistência semanal ── */}
+        {weeklyConsistency.weeklyScore > 0 && (
+          <div className="bg-gradient-to-br from-[#F0F9FF] to-white rounded-xl border border-[#D1E0FF] p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-sm font-semibold text-[#1A1A2E]">Consistência da semana</p>
+                <p className="text-xs text-[#6B7280] mt-0.5">Aderência à sua rotina</p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-2xl font-bold text-[#2D6A4F]">{weeklyConsistency.weeklyScore}%</span>
+                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                  weeklyConsistency.trend === "up" ? "bg-emerald-100 text-emerald-700" :
+                  weeklyConsistency.trend === "down" ? "bg-red-100 text-red-700" :
+                  "bg-slate-100 text-slate-700"
+                }`}>
+                  {weeklyConsistency.trend === "up" ? "↑ Em alta" : 
+                   weeklyConsistency.trend === "down" ? "↓ Em queda" : 
+                   "→ Estável"}
+                </span>
+              </div>
+            </div>
+            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  weeklyConsistency.weeklyScore >= 80 ? "bg-emerald-500" :
+                  weeklyConsistency.weeklyScore >= 60 ? "bg-blue-500" :
+                  "bg-amber-500"
+                }`}
+                style={{ width: `${weeklyConsistency.weeklyScore}%` }}
+              />
+            </div>
+            <p className="text-xs text-[#6B7280] mt-3 leading-relaxed">{weeklyConsistency.advice}</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
           {/* Timer — ocupa toda a largura no mobile, metade no desktop */}

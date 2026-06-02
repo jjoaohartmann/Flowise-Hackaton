@@ -48,9 +48,13 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
   const [isRunning, setIsRunning]           = useState(false);
   const [focusDone, setFocusDone]           = useState(0);
   const [totalPomodoros, setTotalPomodoros] = useState(0);
+  const [continuousFocusMinutes, setContinuousFocusMinutes] = useState(0);
+  const [showSaturationAlert, setShowSaturationAlert] = useState(false);
+  const [dismissedSaturationAlert, setDismissedSaturationAlert] = useState(false);
 
   const startTimeRef   = useRef(null);
   const initialTimeRef = useRef(timeLeft);
+  const focusStartRef  = useRef(null);
 
   const mode         = SESSIONS[modeKey];
   const total        = mode.seconds;
@@ -87,6 +91,11 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
     startTimeRef.current   = Date.now();
     initialTimeRef.current = timeLeft;
 
+    // ── RN-SATURA\u00c7\u00c3O-01: Iniciar rastreamento de foco cont\u00ednuo ──
+    if (modeKey === "FOCUS" && !focusStartRef.current) {
+      focusStartRef.current = Date.now();
+    }
+
     // Salva no localStorage quando vai terminar
     const endTime = Date.now() + timeLeft * 1000;
     saveTimerState(modeKey, endTime);
@@ -94,6 +103,18 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
     const interval = setInterval(() => {
       const elapsed   = Math.floor((Date.now() - startTimeRef.current) / 1000);
       const remaining = initialTimeRef.current - elapsed;
+
+      // ── RN-SATURA\u00c7\u00c3O-01: Calcular tempo cont\u00ednuo de foco ──
+      if (modeKey === "FOCUS" && focusStartRef.current) {
+        const continuousMs = Date.now() - focusStartRef.current;
+        const continuousMin = Math.floor(continuousMs / 60000);
+        setContinuousFocusMinutes(continuousMin);
+
+        // Mostrar alerta se 2h+ de foco cont\u00ednuo
+        if (continuousMin >= 120 && !dismissedSaturationAlert && !showSaturationAlert) {
+          setShowSaturationAlert(true);
+        }
+      }
 
       if (remaining <= 0) {
         clearInterval(interval);
@@ -107,7 +128,7 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
     }, 500);
 
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, [isRunning, modeKey]);
 
   // ── useEffect 3: propaga estado running para o dashboard ──
   useEffect(() => {
@@ -131,8 +152,12 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
       setTotalPomodoros(newTotal);
       onSessionComplete?.(SESSIONS.FOCUS.seconds / 60, newTotal);
       const nextMode = newFocusDone % POMODORO_CYCLE === 0 ? "LONG_BREAK" : "SHORT_BREAK";
-      switchMode(nextMode, false);
-    } else {
+      switchMode(nextMode, false);      
+      // ── RN-SATURA\u00c7\u00c3O-01: Resetar ao entrar em pausa ──
+      focusStartRef.current = null;
+      setContinuousFocusMinutes(0);
+      setShowSaturationAlert(false);
+      setDismissedSaturationAlert(false);    } else {
       switchMode("FOCUS", false);
     }
   }
@@ -154,6 +179,24 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
 
   return (
     <div className="flex flex-col items-center gap-6 w-full">
+
+      {/* ── RN-SATURA\u00c7\u00c3O-01: Alerta de saturação de foco ── */}
+      {showSaturationAlert && !dismissedSaturationAlert && (
+        <div className="w-full bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 flex gap-3 items-start animate-pulse">
+          <span className="text-lg flex-shrink-0">⚠️</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-900">Vamos fazer uma pausa?</p>
+            <p className="text-xs text-amber-800 mt-1">Você está focando há {continuousFocusMinutes} minutos. Uma pausa de 15min vai renovar sua mente!</p>
+          </div>
+          <button
+            onClick={() => setDismissedSaturationAlert(true)}
+            className="flex-shrink-0 text-amber-600 hover:text-amber-700 text-lg leading-none"
+            aria-label="Fechar alerta"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Seletor de modo */}
       <div className="flex gap-1.5 p-1 bg-[#F7F5F0] border border-[#E8E4DC] rounded-2xl">

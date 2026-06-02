@@ -10,6 +10,7 @@ import {
   loadRecentEmotions,
   saveRoutine,
   loadRoutine,
+  validateRoutine,
 } from "@/lib/bemEstar";
 
 // ── RF-07: emoções disponíveis ────────────────────────────
@@ -53,6 +54,7 @@ export default function BemEstarPage() {
   const [routine,       setRoutine]       = useState(ROUTINE_DEFAULT);
   const [savingRoutine, setSavingRoutine] = useState(false);
   const [routineSaved,  setRoutineSaved]  = useState(false);
+  const [validationIssues, setValidationIssues] = useState([]);
 
   // ── Proteção de rota + carregamento inicial ───────────
   useEffect(() => {
@@ -115,6 +117,11 @@ export default function BemEstarPage() {
   async function handleSaveRoutine(e) {
     e.preventDefault();
     if (!user) return;
+    
+    // ── RN-VALID-01: Validar rotina antes de salvar ──
+    const issues = validateRoutine(routine);
+    setValidationIssues(issues);
+    
     setSavingRoutine(true);
     try {
       await saveRoutine(user.uid, routine);
@@ -316,6 +323,31 @@ export default function BemEstarPage() {
             <p className="text-xs text-[#9CA3AF] mb-5">
               Usamos esses dados para sugerir pausas e lembretes personalizados.
             </p>
+
+            {/* ── RN-VALID-01: Avisos de validação ── */}
+            {validationIssues.length > 0 && (
+              <div className="mb-5 flex flex-col gap-2">
+                {validationIssues.map((issue, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-lg border flex gap-3 items-start ${
+                      issue.type === "warning"
+                        ? "bg-amber-50 border-amber-200"
+                        : "bg-blue-50 border-blue-200"
+                    }`}
+                  >
+                    <span className="text-lg flex-shrink-0 mt-0.5">{issue.icon}</span>
+                    <p
+                      className={`text-xs leading-relaxed ${
+                        issue.type === "warning" ? "text-amber-800" : "text-blue-800"
+                      }`}
+                    >
+                      {issue.message}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <form onSubmit={handleSaveRoutine} className="flex flex-col gap-5">
 
