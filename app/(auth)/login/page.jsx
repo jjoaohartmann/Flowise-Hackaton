@@ -34,7 +34,7 @@ function LoginContent() {
     setServerError("");
     if (!validate()) return;
 
-    loading(true);
+    // loading(true);
     setLoading(true);
     try {
       await loginWithEmail({ email: form.email, password: form.password });

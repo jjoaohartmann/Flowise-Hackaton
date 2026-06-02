@@ -67,7 +67,7 @@ export default function SignupPage() {
         password: form.password,
         birthDate: form.birthDate,
       });
-      router.push("/onboarding");
+      router.push("/dashboard");
     } catch (err) {
       const messages = {
         "auth/email-already-in-use": "Este e-mail já está cadastrado.",
