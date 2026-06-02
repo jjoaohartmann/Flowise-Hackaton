@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { loginWithEmail, loginWithGoogle } from "@/lib/auth";
 
-export default function LoginPage() {
+// 1. Toda a sua lógica e UI originais ficam aqui dentro
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/dashboard";
@@ -33,6 +34,7 @@ export default function LoginPage() {
     setServerError("");
     if (!validate()) return;
 
+    loading(true);
     setLoading(true);
     try {
       await loginWithEmail({ email: form.email, password: form.password });
@@ -191,5 +193,18 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+// 2. O export oficial da página agora serve para blindar o uso do useSearchParams()
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center text-sm text-[#6B7280] animate-pulse">
+        Carregando Flowise...
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
