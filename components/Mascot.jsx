@@ -1,157 +1,218 @@
 "use client";
 
-// RF-06 — Mascote virtual com 5 estágios de evolução
-// Nível cresce conforme o streak diário (RN-03)
+import { useState } from "react";
 
 const STAGES = [
-  { label: "Semente",   color: "#8B7355", bg: "#FDF6E3" },
-  { label: "Broto",     color: "#52A756", bg: "#F0FAF0" },
-  { label: "Muda",      color: "#2D9E4F", bg: "#E8F8EC" },
-  { label: "Planta",    color: "#1E7A3C", bg: "#D9F2E3" },
-  { label: "Floresceu", color: "#166B32", bg: "#C6EDCE" },
+  { label: "Caçula",   color: "#10b981", bg: "#ecfdf5", threshold: 1  },
+  { label: "Gordinho", color: "#06b6d4", bg: "#ecfeff", threshold: 3  },
+  { label: "Esperto",  color: "#8b5cf6", bg: "#f5f3ff", threshold: 7  },
+  { label: "Veterano", color: "#f59e0b", bg: "#fffbeb", threshold: 14 },
+  { label: "Lendário", color: "#ef4444", bg: "#fef2f2", threshold: null },
 ];
 
-function SeedSVG() {
+function Baby({ color }) {
   return (
-    <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
-      <ellipse cx="50" cy="62" rx="14" ry="10" fill="#C8A97A" />
-      <ellipse cx="50" cy="58" rx="10" ry="14" fill="#A67C52" />
-      <line x1="50" y1="44" x2="50" y2="38" stroke="#A67C52" strokeWidth="2" strokeLinecap="round"/>
+    <svg viewBox="0 0 100 100" className="w-full h-full">
+      <ellipse cx="50" cy="58" rx="28" ry="30" fill={color} opacity=".9"/>
+      <ellipse cx="50" cy="40" rx="22" ry="22" fill={color}/>
+      <circle cx="50" cy="40" r="11" fill="white"/>
+      <circle cx="50" cy="41" r="7"  fill="#1a1a2e"/>
+      <circle cx="53" cy="38" r="2.5" fill="white"/>
+      <path d="M44 52 Q50 57 56 52" stroke="white" strokeWidth="2" fill="none" strokeLinecap="round"/>
+      <ellipse cx="28" cy="36" rx="5" ry="7" fill={color} opacity=".7"/>
+      <ellipse cx="72" cy="36" rx="5" ry="7" fill={color} opacity=".7"/>
     </svg>
   );
 }
 
-function SproutSVG() {
+function Chubby({ color }) {
   return (
-    <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
-      <rect x="47" y="45" width="6" height="28" rx="3" fill="#4CAF50" />
-      <ellipse cx="50" cy="73" rx="16" ry="6" fill="#795548" opacity="0.4" />
-      <path d="M50 52 Q35 42 38 30 Q50 36 50 52Z" fill="#66BB6A" />
-      <path d="M50 48 Q65 38 62 26 Q50 32 50 48Z" fill="#81C784" />
+    <svg viewBox="0 0 100 100" className="w-full h-full">
+      <ellipse cx="50" cy="60" rx="32" ry="28" fill={color} opacity=".9"/>
+      <ellipse cx="50" cy="38" rx="26" ry="24" fill={color}/>
+      <circle cx="42" cy="37" r="8" fill="white"/>
+      <circle cx="58" cy="37" r="8" fill="white"/>
+      <circle cx="43" cy="38" r="5" fill="#1a1a2e"/>
+      <circle cx="59" cy="38" r="5" fill="#1a1a2e"/>
+      <circle cx="44" cy="36" r="1.8" fill="white"/>
+      <circle cx="60" cy="36" r="1.8" fill="white"/>
+      <ellipse cx="35" cy="46" rx="5" ry="3" fill="white" opacity=".3"/>
+      <ellipse cx="65" cy="46" rx="5" ry="3" fill="white" opacity=".3"/>
+      <path d="M40 18 L36 8 L44 14Z" fill={color}/>
+      <path d="M60 18 L64 8 L56 14Z" fill={color}/>
+      <path d="M44 54 Q50 60 56 54" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
     </svg>
   );
 }
 
-function SeedlingSVG() {
+function Clever({ color }) {
   return (
-    <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
-      <rect x="46" y="38" width="8" height="36" rx="4" fill="#388E3C" />
-      <ellipse cx="50" cy="74" rx="18" ry="7" fill="#795548" opacity="0.4" />
-      <path d="M50 58 Q28 48 30 28 Q50 36 50 58Z" fill="#4CAF50" />
-      <path d="M50 50 Q72 40 70 20 Q50 28 50 50Z" fill="#66BB6A" />
-      <path d="M50 42 Q38 34 40 22 Q50 28 50 42Z" fill="#81C784" />
+    <svg viewBox="0 0 100 100" className="w-full h-full">
+      <ellipse cx="50" cy="62" rx="30" ry="26" fill={color} opacity=".9"/>
+      <ellipse cx="50" cy="37" rx="26" ry="24" fill={color}/>
+      <circle cx="36" cy="37" r="7" fill="white"/>
+      <circle cx="50" cy="33" r="8" fill="white"/>
+      <circle cx="64" cy="37" r="7" fill="white"/>
+      <circle cx="37" cy="38" r="4.5" fill="#1a1a2e"/>
+      <circle cx="51" cy="34" r="5"   fill="#1a1a2e"/>
+      <circle cx="65" cy="38" r="4.5" fill="#1a1a2e"/>
+      <circle cx="38" cy="36" r="1.5" fill="white"/>
+      <circle cx="52" cy="32" r="1.5" fill="white"/>
+      <circle cx="66" cy="36" r="1.5" fill="white"/>
+      <path d="M38 16 L33 4 L42 12Z"  fill={color} opacity=".8"/>
+      <path d="M62 16 L67 4 L58 12Z"  fill={color} opacity=".8"/>
+      <path d="M20 52 Q10 42 18 36 Q22 44 26 48Z" fill={color} opacity=".6"/>
+      <path d="M80 52 Q90 42 82 36 Q78 44 74 48Z" fill={color} opacity=".6"/>
+      <path d="M43 56 Q50 63 57 56" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
     </svg>
   );
 }
 
-function PlantSVG() {
+function Veteran({ color }) {
   return (
-    <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
-      <rect x="45" y="32" width="10" height="44" rx="5" fill="#2E7D32" />
-      <ellipse cx="50" cy="76" rx="20" ry="8" fill="#795548" opacity="0.4" />
-      <path d="M50 62 Q20 52 22 28 Q50 38 50 62Z" fill="#388E3C" />
-      <path d="M50 54 Q80 44 78 20 Q50 30 50 54Z" fill="#43A047" />
-      <path d="M50 44 Q30 36 32 20 Q50 26 50 44Z" fill="#4CAF50" />
-      <path d="M50 36 Q70 28 68 14 Q50 20 50 36Z" fill="#66BB6A" />
+    <svg viewBox="0 0 100 100" className="w-full h-full">
+      <ellipse cx="50" cy="64" rx="32" ry="26" fill={color} opacity=".9"/>
+      <ellipse cx="50" cy="37" rx="28" ry="26" fill={color}/>
+      <circle cx="34" cy="33" r="7"  fill="white"/>
+      <circle cx="46" cy="30" r="8"  fill="white"/>
+      <circle cx="58" cy="30" r="8"  fill="white"/>
+      <circle cx="68" cy="33" r="7"  fill="white"/>
+      <circle cx="35" cy="34" r="4.5" fill="#1a1a2e"/>
+      <circle cx="47" cy="31" r="5"   fill="#1a1a2e"/>
+      <circle cx="59" cy="31" r="5"   fill="#1a1a2e"/>
+      <circle cx="69" cy="34" r="4.5" fill="#1a1a2e"/>
+      <circle cx="36" cy="32" r="1.5" fill="white"/>
+      <circle cx="48" cy="29" r="1.5" fill="white"/>
+      <circle cx="60" cy="29" r="1.5" fill="white"/>
+      <circle cx="70" cy="32" r="1.5" fill="white"/>
+      <path d="M36 14 L28 2  L42 10Z"  fill={color}/>
+      <path d="M64 14 L72 2  L58 10Z"  fill={color}/>
+      <path d="M18 56 Q4 44 14 34 Q20 46 26 52Z"  fill={color} opacity=".7"/>
+      <path d="M82 56 Q96 44 86 34 Q80 46 74 52Z"  fill={color} opacity=".7"/>
+      <path d="M42 58 Q50 65 58 58" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
     </svg>
   );
 }
 
-function BloomSVG() {
+function Legendary({ color }) {
   return (
-    <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
-      <rect x="45" y="34" width="10" height="44" rx="5" fill="#1B5E20" />
-      <ellipse cx="50" cy="78" rx="22" ry="8" fill="#795548" opacity="0.4" />
-      {/* Folhas */}
-      <path d="M50 64 Q18 54 20 28 Q50 40 50 64Z" fill="#2E7D32" />
-      <path d="M50 56 Q82 46 80 20 Q50 32 50 56Z" fill="#388E3C" />
-      <path d="M50 46 Q28 38 30 18 Q50 26 50 46Z" fill="#43A047" />
-      <path d="M50 38 Q72 30 70 12 Q50 20 50 38Z" fill="#4CAF50" />
-      {/* Flor */}
-      <circle cx="50" cy="22" r="10" fill="#FFF176" />
-      <circle cx="50" cy="12" r="6" fill="#FFD54F" />
-      <circle cx="60" cy="22" r="6" fill="#FFD54F" />
-      <circle cx="40" cy="22" r="6" fill="#FFD54F" />
-      <circle cx="57" cy="14" r="6" fill="#FFCA28" />
-      <circle cx="43" cy="14" r="6" fill="#FFCA28" />
-      <circle cx="50" cy="22" r="5" fill="#FF8F00" />
-      {/* Brilhos */}
-      <circle cx="44" cy="8" r="2" fill="#FFF9C4" opacity="0.8"/>
-      <circle cx="60" cy="10" r="1.5" fill="#FFF9C4" opacity="0.8"/>
+    <svg viewBox="0 0 100 100" className="w-full h-full">
+      <ellipse cx="50" cy="64" rx="34" ry="26" fill={color} opacity=".9"/>
+      <ellipse cx="50" cy="36" rx="30" ry="27" fill={color}/>
+      <path d="M28 22 L34 10 L42 18 L50 8 L58 18 L66 10 L72 22Z" fill="#fbbf24" opacity=".9"/>
+      <circle cx="32" cy="33" r="6"  fill="white"/>
+      <circle cx="43" cy="29" r="7"  fill="white"/>
+      <circle cx="55" cy="29" r="7"  fill="white"/>
+      <circle cx="66" cy="33" r="6"  fill="white"/>
+      <circle cx="49" cy="42" r="5"  fill="white"/>
+      <circle cx="33" cy="34" r="4"   fill="#1a1a2e"/>
+      <circle cx="44" cy="30" r="4.5" fill="#1a1a2e"/>
+      <circle cx="56" cy="30" r="4.5" fill="#1a1a2e"/>
+      <circle cx="67" cy="34" r="4"   fill="#1a1a2e"/>
+      <circle cx="50" cy="43" r="3.5" fill="#1a1a2e"/>
+      <circle cx="34" cy="32" r="1.5" fill="white"/>
+      <circle cx="45" cy="28" r="1.5" fill="white"/>
+      <circle cx="57" cy="28" r="1.5" fill="white"/>
+      <circle cx="68" cy="32" r="1.5" fill="white"/>
+      <circle cx="51" cy="41" r="1.5" fill="white"/>
+      <path d="M16 60 Q0 46 12 32 Q18 50 28 56Z"   fill={color} opacity=".75"/>
+      <path d="M84 60 Q100 46 88 32 Q82 50 72 56Z"  fill={color} opacity=".75"/>
+      <path d="M16 62 Q2 54 8 44 Q16 54 24 58Z"    fill={color} opacity=".5"/>
+      <path d="M84 62 Q98 54 92 44 Q84 54 76 58Z"   fill={color} opacity=".5"/>
+      <circle cx="20" cy="22" r="3" fill="#fbbf24" opacity=".7"/>
+      <circle cx="80" cy="22" r="3" fill="#fbbf24" opacity=".7"/>
+      <circle cx="50" cy="14" r="3" fill="#fbbf24" opacity=".8"/>
+      <path d="M40 60 Q50 68 60 60" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round"/>
     </svg>
   );
 }
 
-const SVG_BY_LEVEL = [SeedSVG, SproutSVG, SeedlingSVG, PlantSVG, BloomSVG];
+const SVGS = [Baby, Chubby, Clever, Veteran, Legendary];
 
 export default function Mascot({ level = 0, streakCount = 0, isTimerRunning = false }) {
-  const stage = STAGES[level] ?? STAGES[0];
-  const SvgComponent = SVG_BY_LEVEL[level] ?? SeedSVG;
+  const [isJumping, setIsJumping] = useState(false);
 
-  const nextLevel = STAGES[level + 1];
-  const streakNeeded = [0, 1, 3, 7, 14];
-  const nextThreshold = streakNeeded[level + 1];
+  const safeLevel    = Math.min(level, STAGES.length - 1);
+  const stage        = STAGES[safeLevel];
+  const SVGComponent = SVGS[safeLevel];
+
+  const nextStage     = STAGES[safeLevel + 1];
+  const prevThreshold = safeLevel > 0 ? (STAGES[safeLevel - 1].threshold ?? 0) : 0;
+  const progressPct   = nextStage
+    ? Math.min(((streakCount - prevThreshold) / ((nextStage.threshold ?? 1) - prevThreshold)) * 100, 100)
+    : 100;
+
+  function handleClick() {
+    if (isJumping) return;
+    setIsJumping(true);
+    setTimeout(() => setIsJumping(false), 600);
+  }
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      {/* Mascote */}
-      <div
-        className="relative w-32 h-32 rounded-full flex items-center justify-center transition-all duration-700"
-        style={{ backgroundColor: stage.bg }}
-        role="img"
-        aria-label={`Mascote no estágio ${stage.label}`}
-      >
-        <div
-          className={`w-24 h-24 transition-transform duration-300 ${
-            isTimerRunning ? "scale-110" : "scale-100"
-          }`}
-        >
-          <SvgComponent />
-        </div>
+    <div className="flex flex-col items-center gap-3 w-full">
+      <p className="text-[10px] font-semibold text-[#9CA3AF] uppercase tracking-widest">
+        Seu bichinho
+      </p>
 
-        {/* Pulso animado quando timer rodando */}
+      {/* Frame clicável do mascote */}
+      <button
+        onClick={handleClick}
+        aria-label="Interagir com o mascote"
+        className={`relative w-32 h-32 rounded-full flex items-center justify-center transition-transform duration-300 cursor-pointer select-none focus:outline-none ${
+          isJumping      ? "animate-bounce" : ""
+        } ${isTimerRunning ? "scale-105"    : "scale-100"}`}
+        style={{ backgroundColor: stage.bg }}
+      >
         {isTimerRunning && (
           <span
             className="absolute inset-0 rounded-full animate-ping opacity-20"
             style={{ backgroundColor: stage.color }}
           />
         )}
-      </div>
+        <div className="w-24 h-24">
+          <SVGComponent color={stage.color} />
+        </div>
+      </button>
 
-      {/* Nome do estágio */}
+      {/* Nome + streak */}
       <div className="text-center">
-        <p className="text-sm font-medium" style={{ color: stage.color }}>
-          {stage.label}
+        <p className="text-sm font-bold tracking-wide" style={{ color: stage.color }}>
+          {stage.label.toUpperCase()}
         </p>
         <p className="text-xs text-[#9CA3AF] mt-0.5">
-          {streakCount} {streakCount === 1 ? "dia seguido" : "dias seguidos"}
+          🔥 {streakCount} {streakCount === 1 ? "dia seguido" : "dias seguidos"}
         </p>
       </div>
 
-      {/* Barra de progresso para próximo nível */}
-      {nextLevel && nextThreshold && (
+      {/* Barra de evolução */}
+      {nextStage && (
         <div className="w-full max-w-[180px]">
           <div className="flex justify-between text-[10px] text-[#9CA3AF] mb-1">
-            <span>Próximo: {nextLevel.label}</span>
-            <span>{Math.min(streakCount, nextThreshold)}/{nextThreshold} dias</span>
+            <span>
+              Próximo:{" "}
+              <span className="font-medium" style={{ color: stage.color }}>
+                {nextStage.label}
+              </span>
+            </span>
+            <span>{streakCount}/{nextStage.threshold}D</span>
           </div>
           <div className="h-1.5 rounded-full bg-[#E8E4DC] overflow-hidden">
             <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                backgroundColor: stage.color,
-                width: `${Math.min((streakCount / nextThreshold) * 100, 100)}%`,
-              }}
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${progressPct}%`, backgroundColor: stage.color }}
             />
           </div>
         </div>
       )}
 
-      {level === 4 && (
-        <p className="text-xs text-[#2D6A4F] font-medium bg-[#E8F5EF] px-3 py-1 rounded-full">
-          🌸 Evolução máxima!
+      {!nextStage && (
+        <p className="text-xs font-medium px-3 py-1 rounded-full"
+           style={{ color: stage.color, backgroundColor: stage.bg }}>
+          ✨ Evolução máxima!
         </p>
       )}
+
+      <p className="text-[10px] text-[#9CA3AF]">Clique no bichinho para interagir! 👆</p>
     </div>
   );
 }

@@ -1,153 +1,253 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
-// Modos disponíveis no cronômetro
-const MODES = {
-  FOCUS:      { label: "Foco",        seconds: 25 * 60, color: "#2D6A4F", bg: "#E8F5EF" },
-  SHORT_BREAK:{ label: "Pausa curta", seconds:  5 * 60, color: "#1E6091", bg: "#EBF5FB" },
-  LONG_BREAK: { label: "Pausa longa", seconds: 15 * 60, color: "#6B3FA0", bg: "#F5EEF8" },
+// ── Configuração Pomodoro ──────────────────────────────────
+const SESSIONS = {
+  FOCUS:       { label: "Foco",        seconds: 25 * 60, type: "focus" },
+  SHORT_BREAK: { label: "Pausa curta", seconds:  5 * 60, type: "break" },
+  LONG_BREAK:  { label: "Pausa longa", seconds: 15 * 60, type: "break" },
 };
 
-function formatTime(totalSeconds) {
-  const m = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
-  const s = (totalSeconds % 60).toString().padStart(2, "0");
-  return `${m}:${s}`;
+const POMODORO_CYCLE = 4;
+
+function formatTime(s) {
+  return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
 
-export default function FocusTimer({ onSessionComplete }) {
-  const [modeKey, setModeKey] = useState("FOCUS");
-  const [timeLeft, setTimeLeft] = useState(MODES.FOCUS.seconds);
-  const [isRunning, setIsRunning] = useState(false);
-  const [sessionsCompleted, setSessionsCompleted] = useState(0);
+// ── LocalStorage helpers ───────────────────────────────────
+const STORAGE_KEY = "flowise_timer";
 
-  const mode = MODES[modeKey];
-  const progress = 1 - timeLeft / mode.seconds;
-  const circumference = 2 * Math.PI * 54; // raio 54
+function saveTimerState(modeKey, endTime) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ modeKey, endTime }));
+}
 
-  // ─────────────────────────────────────────────
-  // useEffect #1 — O CORAÇÃO DO CRONÔMETRO
-  //
-  // useEffect roda código com "efeitos colaterais"
-  // (coisas fora do render, como timers).
-  //
-  // O array de dependências [isRunning] faz o efeito
-  // ser recriado sempre que isRunning muda.
-  //
-  // A função de RETORNO (cleanup) cancela o intervalo
-  // quando o componente é desmontado ou o efeito
-  // roda novamente — evitando memory leaks.
-  // ─────────────────────────────────────────────
+function loadTimerState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const { modeKey, endTime } = JSON.parse(raw);
+    const remaining = Math.floor((endTime - Date.now()) / 1000);
+    if (remaining <= 0) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return { modeKey, remaining };
+  } catch {
+    return null;
+  }
+}
+
+function clearTimerState() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+export default function FocusTimer({ onSessionComplete, onRunningChange }) {
+  const [modeKey, setModeKey]               = useState("FOCUS");
+  const [timeLeft, setTimeLeft]             = useState(SESSIONS.FOCUS.seconds);
+  const [isRunning, setIsRunning]           = useState(false);
+  const [focusDone, setFocusDone]           = useState(0);
+  const [totalPomodoros, setTotalPomodoros] = useState(0);
+
+  const startTimeRef   = useRef(null);
+  const initialTimeRef = useRef(timeLeft);
+
+  const mode         = SESSIONS[modeKey];
+  const total        = mode.seconds;
+  const progress     = (total - timeLeft) / total;
+  const radius       = 80;
+  const circumference = 2 * Math.PI * radius;
+  const isFocusMode  = modeKey === "FOCUS";
+
+  const ringColor = {
+    FOCUS:       "#10b981",
+    SHORT_BREAK: "#3b82f6",
+    LONG_BREAK:  "#8b5cf6",
+  }[modeKey];
+
+  // ── useEffect 1: recupera timer ao recarregar ─────────────
   useEffect(() => {
-    if (!isRunning) return; // se pausado, não cria intervalo
+    const saved = loadTimerState();
+    if (saved) {
+      setModeKey(saved.modeKey);
+      setTimeLeft(saved.remaining);
+      setIsRunning(true);
+    }
+  }, []);
+
+  // ── useEffect 2: tick do cronômetro ──────────────────────
+  // Usa Date.now() em vez de contar ticks — imune ao throttle
+  // do browser em abas em segundo plano.
+  useEffect(() => {
+    if (!isRunning) {
+      startTimeRef.current = null;
+      return;
+    }
+
+    startTimeRef.current   = Date.now();
+    initialTimeRef.current = timeLeft;
+
+    // Salva no localStorage quando vai terminar
+    const endTime = Date.now() + timeLeft * 1000;
+    saveTimerState(modeKey, endTime);
 
     const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setIsRunning(false);
-          handleSessionEnd();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+      const elapsed   = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const remaining = initialTimeRef.current - elapsed;
 
-    // Cleanup: cancela o intervalo ao pausar ou trocar de modo
+      if (remaining <= 0) {
+        clearInterval(interval);
+        clearTimerState();
+        setTimeLeft(0);
+        setIsRunning(false);
+        handleSessionEnd();
+      } else {
+        setTimeLeft(remaining);
+      }
+    }, 500);
+
     return () => clearInterval(interval);
-  }, [isRunning]); // roda novamente sempre que isRunning mudar
+  }, [isRunning]);
 
-  // ─────────────────────────────────────────────
-  // useEffect #2 — Atualiza o título da aba
-  // Dependências: [timeLeft, modeKey, isRunning]
-  // ─────────────────────────────────────────────
+  // ── useEffect 3: propaga estado running para o dashboard ──
   useEffect(() => {
-    if (isRunning) {
-      document.title = `${formatTime(timeLeft)} — ${mode.label} | Flowise`;
-    } else {
-      document.title = "Flowise — Produtividade com equilíbrio";
-    }
-    return () => { document.title = "Flowise"; };
-  }, [timeLeft, modeKey, isRunning]);
+    onRunningChange?.(isRunning);
+  }, [isRunning]);
 
+  // ── useEffect 4: título da aba ────────────────────────────
+  useEffect(() => {
+    document.title = isRunning
+      ? `${formatTime(timeLeft)} — ${mode.label} | Flowise`
+      : "Flowise";
+    return () => { document.title = "Flowise"; };
+  }, [timeLeft, isRunning]);
+
+  // ── Lógica ao terminar uma sessão ────────────────────────
   function handleSessionEnd() {
     if (modeKey === "FOCUS") {
-      const newCount = sessionsCompleted + 1;
-      setSessionsCompleted(newCount);
-      const minutesFocused = MODES.FOCUS.seconds / 60;
-      onSessionComplete?.(minutesFocused, newCount);
+      const newFocusDone = focusDone + 1;
+      const newTotal     = totalPomodoros + 1;
+      setFocusDone(newFocusDone);
+      setTotalPomodoros(newTotal);
+      onSessionComplete?.(SESSIONS.FOCUS.seconds / 60, newTotal);
+      const nextMode = newFocusDone % POMODORO_CYCLE === 0 ? "LONG_BREAK" : "SHORT_BREAK";
+      switchMode(nextMode, false);
+    } else {
+      switchMode("FOCUS", false);
     }
   }
 
-  function switchMode(key) {
-    setIsRunning(false);
+  function switchMode(key, autoStart = false) {
+    clearTimerState();
     setModeKey(key);
-    setTimeLeft(MODES[key].seconds);
+    setTimeLeft(SESSIONS[key].seconds);
+    setIsRunning(autoStart);
   }
 
-  function toggleTimer() {
-    setIsRunning((prev) => !prev);
-  }
+  function toggleTimer() { setIsRunning((p) => !p); }
 
   function resetTimer() {
     setIsRunning(false);
     setTimeLeft(mode.seconds);
+    clearTimerState();
   }
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-6 w-full">
+
       {/* Seletor de modo */}
-      <div className="flex gap-2 p-1 rounded-xl bg-[#F7F5F0] border border-[#E8E4DC]">
-        {Object.entries(MODES).map(([key, m]) => (
+      <div className="flex gap-1.5 p-1 bg-[#F7F5F0] border border-[#E8E4DC] rounded-2xl">
+        {Object.entries(SESSIONS).map(([key, s]) => (
           <button
             key={key}
             onClick={() => switchMode(key)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
               modeKey === key
                 ? "bg-white shadow-sm border border-[#E8E4DC] text-[#1A1A2E]"
-                : "text-[#6B7280] hover:text-[#374151]"
+                : "text-[#9CA3AF] hover:text-[#374151]"
             }`}
           >
-            {m.label}
+            {s.label}
           </button>
         ))}
       </div>
 
-      {/* Anel circular do cronômetro */}
-      <div className="relative w-44 h-44 flex items-center justify-center">
-        <svg className="absolute inset-0 -rotate-90" width="176" height="176" viewBox="0 0 120 120">
-          {/* Trilha de fundo */}
-          <circle cx="60" cy="60" r="54" fill="none" stroke="#E8E4DC" strokeWidth="6" />
-          {/* Progresso */}
+      {/* Anel do cronômetro */}
+      <div className="relative flex items-center justify-center w-52 h-52">
+        <svg
+          className="-rotate-90 absolute inset-0"
+          width="208" height="208"
+          viewBox="0 0 208 208"
+        >
+          <defs>
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={ringColor} stopOpacity="0.9" />
+              <stop offset="100%" stopColor={ringColor} stopOpacity="0.4" />
+            </linearGradient>
+          </defs>
+          <circle cx="104" cy="104" r={radius} fill="none" stroke="#E8E4DC" strokeWidth="8" />
           <circle
-            cx="60" cy="60" r="54"
+            cx="104" cy="104" r={radius}
             fill="none"
-            stroke={mode.color}
-            strokeWidth="6"
+            stroke="url(#ringGrad)"
+            strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={circumference * (1 - progress)}
-            style={{ transition: "stroke-dashoffset 0.8s ease" }}
+            style={{ transition: "stroke-dashoffset 0.9s ease, stroke 0.4s ease" }}
           />
         </svg>
 
-        {/* Tempo e modo no centro */}
-        <div className="flex flex-col items-center z-10">
-          <span className="text-4xl font-semibold tracking-tight text-[#1A1A2E]" style={{ fontVariantNumeric: "tabular-nums" }}>
+        <div className="flex flex-col items-center z-10 select-none">
+          <span className="text-5xl font-semibold tracking-tight text-[#1A1A2E] tabular-nums">
             {formatTime(timeLeft)}
           </span>
-          <span className="text-xs mt-1" style={{ color: mode.color }}>{mode.label}</span>
+          <span className="text-xs mt-1.5 font-medium" style={{ color: ringColor }}>
+            {isRunning ? mode.label.toUpperCase() : "PRONTO"}
+          </span>
         </div>
+
+        {isRunning && (
+          <span
+            className="absolute inset-0 rounded-full animate-ping opacity-10"
+            style={{ backgroundColor: ringColor }}
+          />
+        )}
+      </div>
+
+      {/* Dots de sessão Pomodoro */}
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex gap-2">
+          {Array.from({ length: POMODORO_CYCLE }).map((_, i) => {
+            const cycleIndex = focusDone % POMODORO_CYCLE;
+            const filled     = i < cycleIndex;
+            const current    = isFocusMode && i === cycleIndex && isRunning;
+            return (
+              <div
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  current ? "w-5 bg-emerald-500"
+                  : filled ? "w-3 bg-emerald-400"
+                  : "w-3 bg-[#E8E4DC]"
+                }`}
+              />
+            );
+          })}
+        </div>
+        <p className="text-[10px] text-[#9CA3AF]">
+          Ciclo {Math.floor(focusDone / POMODORO_CYCLE) + 1} · Sessão{" "}
+          {(focusDone % POMODORO_CYCLE) + 1}/{POMODORO_CYCLE}
+        </p>
       </div>
 
       {/* Controles */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
         <button
           onClick={resetTimer}
           className="w-10 h-10 rounded-full border border-[#E8E4DC] bg-white flex items-center justify-center text-[#9CA3AF] hover:text-[#6B7280] hover:bg-[#F7F5F0] transition-all active:scale-95"
           aria-label="Reiniciar"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
             <path d="M3 3v5h5"/>
           </svg>
@@ -155,32 +255,33 @@ export default function FocusTimer({ onSessionComplete }) {
 
         <button
           onClick={toggleTimer}
-          className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-sm transition-all active:scale-95 hover:opacity-90"
-          style={{ backgroundColor: mode.color }}
+          className="flex items-center gap-2 px-6 py-3 rounded-2xl text-white text-sm font-medium shadow-sm transition-all active:scale-95 hover:opacity-90"
+          style={{ backgroundColor: ringColor }}
           aria-label={isRunning ? "Pausar" : "Iniciar"}
         >
           {isRunning ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>
-            </svg>
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="4" width="4" height="16" rx="1"/>
+                <rect x="14" y="4" width="4" height="16" rx="1"/>
+              </svg>
+              Pausar
+            </>
           ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="5,3 19,12 5,21"/>
-            </svg>
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5,3 19,12 5,21"/>
+              </svg>
+              {modeKey === "FOCUS" ? "Iniciar Foco" : "Iniciar Pausa"}
+            </>
           )}
         </button>
 
-        <div className="w-10 h-10 rounded-full border border-[#E8E4DC] bg-white flex items-center justify-center">
-          <span className="text-xs font-medium text-[#6B7280]">{sessionsCompleted}</span>
+        <div className="w-10 h-10 rounded-full border border-[#E8E4DC] bg-white flex flex-col items-center justify-center">
+          <span className="text-xs font-semibold text-[#1A1A2E] leading-none">{totalPomodoros}</span>
+          <span className="text-[8px] text-[#9CA3AF] leading-none">hoje</span>
         </div>
       </div>
-
-      {/* Legenda dos pomodoros */}
-      <p className="text-xs text-[#9CA3AF]">
-        {sessionsCompleted === 0
-          ? "Inicie seu primeiro foco do dia"
-          : `${sessionsCompleted} ${sessionsCompleted === 1 ? "sessão completa" : "sessões completas"} hoje`}
-      </p>
     </div>
   );
 }

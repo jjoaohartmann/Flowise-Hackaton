@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import {
@@ -11,45 +11,46 @@ import {
   loadRoutine,
 } from "@/lib/bemEstar";
 
-// ── RF-07: opções de emoção ───────────────────────────────
+// ── RF-07: emoções disponíveis ────────────────────────────
 const EMOTIONS = [
-  { emoji: "😊", label: "Feliz",       color: "#2D6A4F", bg: "#E8F5EF", border: "#B7DFC9" },
-  { emoji: "😌", label: "Calmo",       color: "#1E6091", bg: "#EBF5FB", border: "#A9CCE3" },
-  { emoji: "🧘", label: "Focado",      color: "#6B3FA0", bg: "#F5EEF8", border: "#D2B4DE" },
-  { emoji: "😰", label: "Estressado",  color: "#B7770D", bg: "#FEF9E7", border: "#F9E79F" },
-  { emoji: "😴", label: "Cansado",     color: "#717D7E", bg: "#F2F3F4", border: "#CCD1D1" },
-  { emoji: "😤", label: "Frustrado",   color: "#A93226", bg: "#FDEDEC", border: "#F1948A" },
+  { emoji: "😊", label: "Feliz",      color: "#10b981", bg: "#ecfdf5", border: "#6ee7b7" },
+  { emoji: "😌", label: "Calmo",      color: "#3b82f6", bg: "#eff6ff", border: "#93c5fd" },
+  { emoji: "🧘", label: "Focado",     color: "#8b5cf6", bg: "#f5f3ff", border: "#c4b5fd" },
+  { emoji: "😰", label: "Estressado", color: "#f59e0b", bg: "#fffbeb", border: "#fcd34d" },
+  { emoji: "😴", label: "Cansado",    color: "#6b7280", bg: "#f9fafb", border: "#d1d5db" },
+  { emoji: "😤", label: "Frustrado",  color: "#ef4444", bg: "#fef2f2", border: "#fca5a5" },
 ];
 
-// ── RF-04: campos da rotina ───────────────────────────────
+// ── RF-04: valores padrão da rotina ──────────────────────
 const ROUTINE_DEFAULT = {
+  objetivo:      "",
   wakeUp:        "07:00",
   sleep:         "23:00",
   workHours:     "8",
-  breakMinutes:  "15",
+  breakMinutes:  "25",
   exerciseMin:   "30",
   screenLimit:   "120",
 };
 
 export default function BemEstarPage() {
   const { user, loading } = useAuth();
-  const router = useRouter();
+  const router   = useRouter();
+  const pathname = usePathname();
 
-  // ── Estado geral ──────────────────────────────────────
-  const [tab, setTab] = useState("emocoes"); // "emocoes" | "rotina"
-  const [pageLoading, setPageLoading] = useState(true);
+  const [tab,           setTab]           = useState("emocoes");
+  const [pageLoading,   setPageLoading]   = useState(true);
 
   // ── Estado: emoções ───────────────────────────────────
   const [selectedEmotion, setSelectedEmotion] = useState(null);
-  const [emotionNote, setEmotionNote] = useState("");
-  const [savingEmotion, setSavingEmotion] = useState(false);
-  const [recentEmotions, setRecentEmotions] = useState([]);
-  const [emotionSaved, setEmotionSaved] = useState(false);
+  const [emotionNote,     setEmotionNote]     = useState("");
+  const [savingEmotion,   setSavingEmotion]   = useState(false);
+  const [emotionSaved,    setEmotionSaved]    = useState(false);
+  const [recentEmotions,  setRecentEmotions]  = useState([]);
 
   // ── Estado: rotina ────────────────────────────────────
-  const [routine, setRoutine] = useState(ROUTINE_DEFAULT);
+  const [routine,       setRoutine]       = useState(ROUTINE_DEFAULT);
   const [savingRoutine, setSavingRoutine] = useState(false);
-  const [routineSaved, setRoutineSaved] = useState(false);
+  const [routineSaved,  setRoutineSaved]  = useState(false);
 
   // ── Proteção de rota + carregamento inicial ───────────
   useEffect(() => {
@@ -63,9 +64,7 @@ export default function BemEstarPage() {
           loadRoutine(user.uid),
         ]);
         setRecentEmotions(emotions);
-        if (savedRoutine) {
-          setRoutine((prev) => ({ ...prev, ...savedRoutine }));
-        }
+        if (savedRoutine) setRoutine((prev) => ({ ...prev, ...savedRoutine }));
       } catch (err) {
         console.error("Erro ao carregar bem-estar:", err);
       } finally {
@@ -76,7 +75,7 @@ export default function BemEstarPage() {
     init();
   }, [user, loading]);
 
-  // ── RF-07: salvar emoção ──────────────────────────────
+  // ── RF-07: registrar emoção no Firestore ──────────────
   async function handleSaveEmotion() {
     if (!selectedEmotion || !user) return;
     setSavingEmotion(true);
@@ -86,17 +85,19 @@ export default function BemEstarPage() {
         label: selectedEmotion.label,
         note:  emotionNote.trim(),
       });
-      // Atualiza lista local sem recarregar do Firestore
+
+      // Adiciona ao topo da lista local sem recarregar
       setRecentEmotions((prev) => [
         {
-          id: Date.now().toString(),
+          id:    Date.now().toString(),
           emoji: selectedEmotion.emoji,
           label: selectedEmotion.label,
           note:  emotionNote.trim(),
           date:  new Date().toISOString().split("T")[0],
         },
-        ...prev.slice(0, 6),
+        ...prev.slice(0, 9),
       ]);
+
       setSelectedEmotion(null);
       setEmotionNote("");
       setEmotionSaved(true);
@@ -138,29 +139,33 @@ export default function BemEstarPage() {
     );
   }
 
+  const inputClass = "w-full px-4 py-3 rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] text-[#1A1A2E] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] transition";
+  const selectClass = "w-full px-3 py-2.5 rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] text-[#1A1A2E] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] transition";
+  const labelClass = "block text-xs font-medium text-[#374151] mb-1.5";
+
   return (
     <div className="min-h-screen bg-[#F7F5F0]">
+
       {/* Header */}
       <header className="bg-white border-b border-[#E8E4DC] px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <Link href="/dashboard" className="w-8 h-8 rounded-xl bg-[#2D6A4F] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-[#2D6A4F] flex items-center justify-center">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="9" fill="white" opacity=".3"/>
               <circle cx="12" cy="12" r="6" fill="white" opacity=".6"/>
               <circle cx="12" cy="12" r="3" fill="white"/>
             </svg>
-          </Link>
+          </div>
           <span className="font-semibold text-[#1A1A2E] text-sm">Flowise</span>
+          <span className="text-[10px] border border-[#E8E4DC] text-[#9CA3AF] px-2 py-0.5 rounded-full">beta</span>
         </div>
-        <Link href="/dashboard" className="text-xs text-[#9CA3AF] hover:text-[#6B7280] transition flex items-center gap-1">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          Dashboard
-        </Link>
+        <span className="text-xs text-[#9CA3AF] hidden sm:block truncate max-w-[160px]">
+          {user?.email}
+        </span>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-6 flex flex-col gap-5">
+      <main className="max-w-lg mx-auto px-4 py-6 flex flex-col gap-5 pb-24">
+
         {/* Título */}
         <div>
           <h1 className="text-xl font-semibold text-[#1A1A2E]">Bem-estar 🌿</h1>
@@ -187,7 +192,7 @@ export default function BemEstarPage() {
           ))}
         </div>
 
-        {/* ── ABA EMOÇÕES — RF-07 ─────────────────────── */}
+        {/* ── ABA EMOÇÕES ─────────────────────────────── */}
         {tab === "emocoes" && (
           <div className="flex flex-col gap-4">
             <div className="bg-white rounded-2xl border border-[#E8E4DC] p-5">
@@ -197,49 +202,47 @@ export default function BemEstarPage() {
 
               {/* Grade de emoções */}
               <div className="grid grid-cols-3 gap-2.5 mb-5">
-                {EMOTIONS.map((em) => (
-                  <button
-                    key={em.label}
-                    onClick={() => setSelectedEmotion(
-                      selectedEmotion?.label === em.label ? null : em
-                    )}
-                    className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all active:scale-95 ${
-                      selectedEmotion?.label === em.label
-                        ? "shadow-sm scale-105"
-                        : "border-[#E8E4DC] bg-[#FAFAF8] hover:border-[#D1CBC0]"
-                    }`}
-                    style={
-                      selectedEmotion?.label === em.label
-                        ? { borderColor: em.border, backgroundColor: em.bg }
-                        : {}
-                    }
-                  >
-                    <span className="text-2xl">{em.emoji}</span>
-                    <span
-                      className="text-[11px] font-medium"
-                      style={{ color: selectedEmotion?.label === em.label ? em.color : "#6B7280" }}
+                {EMOTIONS.map((em) => {
+                  const active = selectedEmotion?.label === em.label;
+                  return (
+                    <button
+                      key={em.label}
+                      onClick={() => setSelectedEmotion(active ? null : em)}
+                      className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all active:scale-95 ${
+                        active ? "shadow-sm scale-105" : "border-[#E8E4DC] bg-[#FAFAF8] hover:border-[#D1CBC0]"
+                      }`}
+                      style={active ? { borderColor: em.border, backgroundColor: em.bg } : {}}
                     >
-                      {em.label}
-                    </span>
-                  </button>
-                ))}
+                      <span className="text-2xl">{em.emoji}</span>
+                      <span
+                        className="text-[11px] font-medium"
+                        style={{ color: active ? em.color : "#6B7280" }}
+                      >
+                        {em.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Nota opcional */}
               {selectedEmotion && (
-                <div className="mb-4 animate-in fade-in duration-200">
+                <div className="mb-4">
                   <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                    Quer adicionar uma nota? <span className="text-[#9CA3AF] font-normal">(opcional)</span>
+                    Quer adicionar uma nota?{" "}
+                    <span className="text-[#9CA3AF] font-normal">(opcional)</span>
                   </label>
                   <textarea
                     value={emotionNote}
                     onChange={(e) => setEmotionNote(e.target.value)}
-                    placeholder={`O que está deixando você ${selectedEmotion.label.toLowerCase()}?`}
+                    placeholder={`O que está te deixando ${selectedEmotion.label.toLowerCase()}?`}
                     rows={2}
                     maxLength={200}
-                    className="w-full px-4 py-3 rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] text-[#1A1A2E] placeholder-[#9CA3AF] text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] transition"
+                    className={`${inputClass} resize-none`}
                   />
-                  <p className="text-right text-[10px] text-[#9CA3AF] mt-1">{emotionNote.length}/200</p>
+                  <p className="text-right text-[10px] text-[#9CA3AF] mt-1">
+                    {emotionNote.length}/200
+                  </p>
                 </div>
               )}
 
@@ -260,16 +263,17 @@ export default function BemEstarPage() {
                 ) : emotionSaved ? "✓ Registrado!" : "Registrar emoção"}
               </button>
 
-              {/* RN-06: aviso de privacidade */}
+              {/* Aviso de privacidade */}
               <p className="text-[10px] text-[#9CA3AF] text-center mt-3 flex items-center justify-center gap-1">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  <rect x="3" y="11" width="18" height="11" rx="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
-                Seus dados emocionais são privados e vinculados apenas à sua conta
+                Dados privados — vinculados apenas à sua conta
               </p>
             </div>
 
-            {/* Histórico recente */}
+            {/* Histórico */}
             {recentEmotions.length > 0 && (
               <div className="bg-white rounded-2xl border border-[#E8E4DC] p-5">
                 <p className="text-xs font-medium text-[#9CA3AF] uppercase tracking-wider mb-3">
@@ -288,7 +292,7 @@ export default function BemEstarPage() {
                           <span className="text-[10px] text-[#9CA3AF] flex-shrink-0">{em.date}</span>
                         </div>
                         {em.note && (
-                          <p className="text-xs text-[#6B7280] mt-0.5 truncate">{em.note}</p>
+                          <p className="text-xs text-[#6B7280] mt-0.5">{em.note}</p>
                         )}
                       </div>
                     </div>
@@ -299,7 +303,7 @@ export default function BemEstarPage() {
           </div>
         )}
 
-        {/* ── ABA ROTINA — RF-04 ──────────────────────── */}
+        {/* ── ABA ROTINA ──────────────────────────────── */}
         {tab === "rotina" && (
           <div className="bg-white rounded-2xl border border-[#E8E4DC] p-5">
             <p className="text-sm font-medium text-[#374151] mb-1">Configure sua rotina</p>
@@ -307,7 +311,22 @@ export default function BemEstarPage() {
               Usamos esses dados para sugerir pausas e lembretes personalizados.
             </p>
 
-            <form onSubmit={handleSaveRoutine} className="flex flex-col gap-4">
+            <form onSubmit={handleSaveRoutine} className="flex flex-col gap-5">
+
+              {/* Objetivo do dia */}
+              <div>
+                <label className={labelClass}>🎯 Objetivo de hoje</label>
+                <input
+                  type="text"
+                  name="objetivo"
+                  value={routine.objetivo}
+                  onChange={handleRoutineChange}
+                  placeholder="Ex: Terminar o módulo 3 do curso..."
+                  className={inputClass}
+                  maxLength={100}
+                />
+              </div>
+
               {/* Sono */}
               <div>
                 <p className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider mb-2.5">
@@ -315,28 +334,12 @@ export default function BemEstarPage() {
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                      Acordar
-                    </label>
-                    <input
-                      type="time"
-                      name="wakeUp"
-                      value={routine.wakeUp}
-                      onChange={handleRoutineChange}
-                      className="w-full px-3 py-2.5 rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] text-[#1A1A2E] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] transition"
-                    />
+                    <label className={labelClass}>Acordar</label>
+                    <input type="time" name="wakeUp" value={routine.wakeUp} onChange={handleRoutineChange} className={inputClass} />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                      Dormir
-                    </label>
-                    <input
-                      type="time"
-                      name="sleep"
-                      value={routine.sleep}
-                      onChange={handleRoutineChange}
-                      className="w-full px-3 py-2.5 rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] text-[#1A1A2E] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] transition"
-                    />
+                    <label className={labelClass}>Dormir</label>
+                    <input type="time" name="sleep" value={routine.sleep} onChange={handleRoutineChange} className={inputClass} />
                   </div>
                 </div>
               </div>
@@ -348,30 +351,16 @@ export default function BemEstarPage() {
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                      Horas por dia
-                    </label>
-                    <select
-                      name="workHours"
-                      value={routine.workHours}
-                      onChange={handleRoutineChange}
-                      className="w-full px-3 py-2.5 rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] text-[#1A1A2E] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] transition"
-                    >
+                    <label className={labelClass}>Horas por dia</label>
+                    <select name="workHours" value={routine.workHours} onChange={handleRoutineChange} className={selectClass}>
                       {["2","3","4","5","6","7","8","9","10","12"].map((h) => (
                         <option key={h} value={h}>{h}h</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                      Pausa a cada (min)
-                    </label>
-                    <select
-                      name="breakMinutes"
-                      value={routine.breakMinutes}
-                      onChange={handleRoutineChange}
-                      className="w-full px-3 py-2.5 rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] text-[#1A1A2E] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] transition"
-                    >
+                    <label className={labelClass}>Pausa a cada (min)</label>
+                    <select name="breakMinutes" value={routine.breakMinutes} onChange={handleRoutineChange} className={selectClass}>
                       {["10","15","20","25","30","45","60"].map((m) => (
                         <option key={m} value={m}>{m} min</option>
                       ))}
@@ -387,32 +376,20 @@ export default function BemEstarPage() {
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                      Exercício (min/dia)
-                    </label>
-                    <select
-                      name="exerciseMin"
-                      value={routine.exerciseMin}
-                      onChange={handleRoutineChange}
-                      className="w-full px-3 py-2.5 rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] text-[#1A1A2E] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] transition"
-                    >
+                    <label className={labelClass}>Exercício (min/dia)</label>
+                    <select name="exerciseMin" value={routine.exerciseMin} onChange={handleRoutineChange} className={selectClass}>
                       {["0","15","20","30","45","60","90"].map((m) => (
                         <option key={m} value={m}>{m === "0" ? "Nenhum" : `${m} min`}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-[#374151] mb-1.5">
-                      Limite de tela (min)
-                    </label>
-                    <select
-                      name="screenLimit"
-                      value={routine.screenLimit}
-                      onChange={handleRoutineChange}
-                      className="w-full px-3 py-2.5 rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] text-[#1A1A2E] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] transition"
-                    >
+                    <label className={labelClass}>Limite de tela</label>
+                    <select name="screenLimit" value={routine.screenLimit} onChange={handleRoutineChange} className={selectClass}>
                       {["60","90","120","150","180","240","300"].map((m) => (
-                        <option key={m} value={m}>{Math.floor(Number(m)/60)}h{Number(m)%60 ? ` ${Number(m)%60}min` : ""}</option>
+                        <option key={m} value={m}>
+                          {Math.floor(Number(m) / 60)}h{Number(m) % 60 ? ` ${Number(m) % 60}min` : ""}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -423,7 +400,7 @@ export default function BemEstarPage() {
               <button
                 type="submit"
                 disabled={savingRoutine}
-                className="w-full py-3 rounded-xl bg-[#2D6A4F] text-white text-sm font-medium transition hover:bg-[#245C44] active:scale-[0.98] disabled:opacity-60 mt-1"
+                className="w-full py-3 rounded-xl bg-[#2D6A4F] text-white text-sm font-medium transition hover:bg-[#245C44] active:scale-[0.98] disabled:opacity-60"
               >
                 {savingRoutine ? (
                   <span className="flex items-center justify-center gap-2">
@@ -441,23 +418,46 @@ export default function BemEstarPage() {
       </main>
 
       {/* Nav inferior */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E8E4DC] flex justify-around items-center py-2 px-4">
-        <Link href="/dashboard" className="flex flex-col items-center gap-0.5 text-[#9CA3AF] hover:text-[#2D6A4F] transition">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E8E4DC] flex justify-around items-center py-2 px-4 z-40">
+        <Link
+          href="/dashboard"
+          className={`flex flex-col items-center gap-0.5 transition ${
+            pathname === "/dashboard" ? "text-[#2D6A4F]" : "text-[#9CA3AF] hover:text-[#2D6A4F]"
+          }`}
+        >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
-          <span className="text-[10px]">Início</span>
+          <span className="text-[10px] font-medium">Início</span>
         </Link>
-        <Link href="/bem-estar" className="flex flex-col items-center gap-0.5 text-[#2D6A4F]">
+
+        <Link
+          href="/bem-estar"
+          className={`flex flex-col items-center gap-0.5 transition ${
+            pathname === "/bem-estar" ? "text-[#2D6A4F]" : "text-[#9CA3AF] hover:text-[#2D6A4F]"
+          }`}
+        >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
           <span className="text-[10px] font-medium">Bem-estar</span>
         </Link>
-      </nav>
 
-      {/* Espaço para não sobrepor nav */}
-      <div className="h-16" />
+        <Link
+          href="/relatorios"
+          className={`flex flex-col items-center gap-0.5 transition ${
+            pathname === "/relatorios" ? "text-[#2D6A4F]" : "text-[#9CA3AF] hover:text-[#2D6A4F]"
+          }`}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          <span className="text-[10px] font-medium">Relatórios</span>
+        </Link>
+      </nav>
     </div>
   );
 }
