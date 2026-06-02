@@ -234,7 +234,7 @@ export default function RelatoriosPage() {
               <div>
                 <p className="font-semibold">Atenção: você registrou muitas emoções negativas recentemente.</p>
                 <p className="text-xs mt-0.5">Considere fazer uma pausa, conversar com alguém ou agendar uma consulta.</p>
-                <Link href="/planos" className="text-xs font-semibold text-amber-700 underline mt-1 inline-block">
+                <Link href="/agendamento" className="text-xs font-semibold text-amber-700 underline mt-1 inline-block">
                   Agendar com psicólogo →
                 </Link>
               </div>
@@ -360,9 +360,9 @@ export default function RelatoriosPage() {
               <p className="text-sm text-[#A8D5C2] mb-3">
                 Agende uma consulta online com profissionais credenciados.
               </p>
-              <button href="../agendamento/page.jsx" className="w-full py-3 bg-white text-[#2D6A4F] font-bold rounded-xl text-sm">
+              <Link href="/agendamento" className="block w-full py-3 bg-white text-[#2D6A4F] font-bold rounded-xl text-sm text-center">
                 Agendar consulta
-              </button>
+              </Link>
             </div>
           ) : (
             <ProGate
