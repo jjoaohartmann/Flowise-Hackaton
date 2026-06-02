@@ -100,7 +100,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0] flex flex-col items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center px-4 py-10">
       {/* Logo / Brand */}
       <div className="mb-8 text-center">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-[#2D6A4F] mb-3">
@@ -110,14 +110,14 @@ export default function SignupPage() {
             <circle cx="12" cy="12" r="3" fill="white"/>
           </svg>
         </div>
-        <h1 className="text-2xl font-semibold text-[#1A1A2E] tracking-tight">Flowise</h1>
-        <p className="text-sm text-[#6B7280] mt-1">Produtividade com equilíbrio</p>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">Flowise</h1>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Produtividade com equilíbrio</p>
       </div>
 
       {/* Card */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-[#E8E4DC] p-6 md:p-8">
-        <h2 className="text-xl font-semibold text-[#1A1A2E] mb-1">Criar conta</h2>
-        <p className="text-sm text-[#6B7280] mb-6">
+      <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 md:p-8">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">Criar conta</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
           Comece sua jornada de equilíbrio hoje.
         </p>
 
@@ -131,7 +131,7 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
           {/* Nome */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-[#374151] mb-1.5">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Nome completo
             </label>
             <input
@@ -142,8 +142,8 @@ export default function SignupPage() {
               value={form.name}
               onChange={handleChange}
               placeholder="Seu nome"
-              className={`w-full px-4 py-3 rounded-xl border text-[#1A1A2E] placeholder-[#9CA3AF] text-sm transition focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] ${
-                errors.name ? "border-red-400 bg-red-50" : "border-[#E8E4DC] bg-[#FAFAF8]"
+              className={`w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-gray-50 placeholder-gray-400 dark:placeholder-gray-500 text-sm transition focus:outline-none focus:ring-2 focus:ring-green-700/30 dark:focus:ring-green-500/30 focus:border-green-700 dark:focus:border-green-500 ${
+                errors.name ? "border-red-400 bg-red-50 dark:bg-red-950/30" : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
               }`}
             />
             {errors.name && <p className="mt-1.5 text-xs text-red-600">{errors.name}</p>}
@@ -151,7 +151,7 @@ export default function SignupPage() {
 
           {/* E-mail */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-[#374151] mb-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               E-mail
             </label>
             <input
@@ -162,8 +162,8 @@ export default function SignupPage() {
               value={form.email}
               onChange={handleChange}
               placeholder="seu@email.com"
-              className={`w-full px-4 py-3 rounded-xl border text-[#1A1A2E] placeholder-[#9CA3AF] text-sm transition focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] ${
-                errors.email ? "border-red-400 bg-red-50" : "border-[#E8E4DC] bg-[#FAFAF8]"
+              className={`w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-gray-50 placeholder-gray-400 dark:placeholder-gray-500 text-sm transition focus:outline-none focus:ring-2 focus:ring-green-700/30 dark:focus:ring-green-500/30 focus:border-green-700 dark:focus:border-green-500 ${
+                errors.email ? "border-red-400 bg-red-50 dark:bg-red-950/30" : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
               }`}
             />
             {errors.email && <p className="mt-1.5 text-xs text-red-600">{errors.email}</p>}
@@ -171,9 +171,9 @@ export default function SignupPage() {
 
           {/* Data de nascimento — RN-04 */}
           <div>
-            <label htmlFor="birthDate" className="block text-sm font-medium text-[#374151] mb-1.5">
+            <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Data de nascimento
-              <span className="ml-1.5 text-xs text-[#9CA3AF] font-normal">(mínimo 16 anos)</span>
+              <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500 font-normal">(mínimo 16 anos)</span>
             </label>
             <input
               id="birthDate"
@@ -182,8 +182,8 @@ export default function SignupPage() {
               max={maxBirthDate}
               value={form.birthDate}
               onChange={handleChange}
-              className={`w-full px-4 py-3 rounded-xl border text-[#1A1A2E] text-sm transition focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] ${
-                errors.birthDate ? "border-red-400 bg-red-50" : "border-[#E8E4DC] bg-[#FAFAF8]"
+              className={`w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-gray-50 text-sm transition focus:outline-none focus:ring-2 focus:ring-green-700/30 dark:focus:ring-green-500/30 focus:border-green-700 dark:focus:border-green-500 ${
+                errors.birthDate ? "border-red-400 bg-red-50 dark:bg-red-950/30" : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
               }`}
             />
             {errors.birthDate && (
@@ -193,7 +193,7 @@ export default function SignupPage() {
 
           {/* Senha */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-[#374151] mb-1.5">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Senha
             </label>
             <input
@@ -204,8 +204,8 @@ export default function SignupPage() {
               value={form.password}
               onChange={handleChange}
               placeholder="Mínimo 8 caracteres"
-              className={`w-full px-4 py-3 rounded-xl border text-[#1A1A2E] placeholder-[#9CA3AF] text-sm transition focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] ${
-                errors.password ? "border-red-400 bg-red-50" : "border-[#E8E4DC] bg-[#FAFAF8]"
+              className={`w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-gray-50 placeholder-gray-400 dark:placeholder-gray-500 text-sm transition focus:outline-none focus:ring-2 focus:ring-green-700/30 dark:focus:ring-green-500/30 focus:border-green-700 dark:focus:border-green-500 ${
+                errors.password ? "border-red-400 bg-red-50 dark:bg-red-950/30" : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
               }`}
             />
             {errors.password && <p className="mt-1.5 text-xs text-red-600">{errors.password}</p>}
@@ -213,7 +213,7 @@ export default function SignupPage() {
 
           {/* Confirmar senha */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#374151] mb-1.5">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Confirmar senha
             </label>
             <input
@@ -224,8 +224,8 @@ export default function SignupPage() {
               value={form.confirmPassword}
               onChange={handleChange}
               placeholder="Repita a senha"
-              className={`w-full px-4 py-3 rounded-xl border text-[#1A1A2E] placeholder-[#9CA3AF] text-sm transition focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] ${
-                errors.confirmPassword ? "border-red-400 bg-red-50" : "border-[#E8E4DC] bg-[#FAFAF8]"
+              className={`w-full px-4 py-3 rounded-xl border text-gray-900 dark:text-gray-50 placeholder-gray-400 dark:placeholder-gray-500 text-sm transition focus:outline-none focus:ring-2 focus:ring-green-700/30 dark:focus:ring-green-500/30 focus:border-green-700 dark:focus:border-green-500 ${
+                errors.confirmPassword ? "border-red-400 bg-red-50 dark:bg-red-950/30" : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
               }`}
             />
             {errors.confirmPassword && (
@@ -237,7 +237,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 rounded-xl bg-[#2D6A4F] text-white text-sm font-medium transition hover:bg-[#245C44] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+            className="w-full py-3 px-4 rounded-xl bg-green-700 dark:bg-green-700 text-white text-sm font-medium transition hover:bg-green-800 dark:hover:bg-green-600 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed mt-2"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
@@ -253,9 +253,9 @@ export default function SignupPage() {
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-[#E8E4DC]" />
-          <span className="text-xs text-[#9CA3AF]">ou continue com</span>
-          <div className="flex-1 h-px bg-[#E8E4DC]" />
+          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
+          <span className="text-xs text-gray-400 dark:text-gray-500">ou continue com</span>
+          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
         </div>
 
         {/* Google */}
@@ -263,7 +263,7 @@ export default function SignupPage() {
           type="button"
           onClick={handleGoogle}
           disabled={googleLoading}
-          className="w-full py-3 px-4 rounded-xl border border-[#E8E4DC] bg-white text-[#374151] text-sm font-medium flex items-center justify-center gap-2.5 transition hover:bg-[#F7F5F0] active:scale-[0.98] disabled:opacity-60"
+          className="w-full py-3 px-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 text-sm font-medium flex items-center justify-center gap-2.5 transition hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-[0.98] disabled:opacity-60"
         >
           <svg width="18" height="18" viewBox="0 0 48 48">
             <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.7 33.4 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-4z"/>
@@ -275,20 +275,20 @@ export default function SignupPage() {
         </button>
 
         {/* Link para login */}
-        <p className="text-center text-sm text-[#6B7280] mt-6">
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
           Já tem uma conta?{" "}
-          <Link href="/login" className="text-[#2D6A4F] font-medium hover:underline">
+          <Link href="/login" className="text-green-700 dark:text-green-400 font-medium hover:underline">
             Entrar
           </Link>
         </p>
       </div>
 
       {/* Footer */}
-      <p className="mt-6 text-xs text-[#9CA3AF] text-center">
+      <p className="mt-6 text-xs text-gray-400 dark:text-gray-500 text-center">
         Ao criar uma conta, você concorda com nossos{" "}
-        <Link href="/terms" className="underline hover:text-[#6B7280]">Termos de Uso</Link>
+        <Link href="/terms" className="underline hover:text-gray-600 dark:hover:text-gray-300">Termos de Uso</Link>
         {" "}e{" "}
-        <Link href="/privacy" className="underline hover:text-[#6B7280]">Política de Privacidade</Link>.
+        <Link href="/privacy" className="underline hover:text-gray-600 dark:hover:text-gray-300">Política de Privacidade</Link>.
       </p>
     </div>
   );

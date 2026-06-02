@@ -3,14 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
-  --font-display: var(--font-outfit), system-ui, sans-serif;
+  /* Light mode colors */
+  --bg-primary: #FAFAF8;
+  --bg-secondary: #F7F5F0;
+  --text-primary: #1F1F1F;
+  --text-secondary: #666666;
+  --border-color: #E8E4DC;
+  --card-bg: #FFFFFF;
+}
+
+html.dark {
+  --bg-primary: #0A0A0A;
+  --bg-secondary: #1A1A1A;
+  --text-primary: #F5F5F5;
+  --text-secondary: #A0A0A0;
+  --border-color: #333333;
+  --card-bg: #1F1F1F;
 }
 
 body {
-  font-family: var(--font-sans);
-}
-
-h1, h2, h3 {
-  font-family: var(--font-display);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }

@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
-import { usePlan } from "@/lib/usePlan";
 import {
   saveEmotion,
   loadRecentEmotions,
@@ -36,9 +34,7 @@ const ROUTINE_DEFAULT = {
 
 export default function BemEstarPage() {
   const { user, loading } = useAuth();
-  const { isPro }         = usePlan();
   const router   = useRouter();
-  const pathname = usePathname();
 
   const [tab,           setTab]           = useState("emocoes");
   const [pageLoading,   setPageLoading]   = useState(true);
@@ -142,51 +138,28 @@ export default function BemEstarPage() {
   // ── Loading ───────────────────────────────────────────
   if (loading || pageLoading) {
     return (
-      <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-[#2D6A4F] border-t-transparent animate-spin" />
+      <div className="flex items-center justify-center flex-1">
+        <div className="w-8 h-8 rounded-full border-2 border-green-700 dark:border-green-600 border-t-transparent animate-spin" />
       </div>
     );
   }
 
-  const inputClass = "w-full px-4 py-3 rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] text-[#1A1A2E] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] transition";
-  const selectClass = "w-full px-3 py-2.5 rounded-xl border border-[#E8E4DC] bg-[#FAFAF8] text-[#1A1A2E] text-sm focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]/30 focus:border-[#2D6A4F] transition";
-  const labelClass = "block text-xs font-medium text-[#374151] mb-1.5";
+  const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-green-700/30 dark:focus:ring-green-500/30 focus:border-green-700 dark:focus:border-green-500 transition";
+  const selectClass = "w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-green-700/30 dark:focus:ring-green-500/30 focus:border-green-700 dark:focus:border-green-500 transition";
+  const labelClass = "block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5";
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0]">
-
-      {/* Header */}
-      <header className="bg-white border-b border-[#E8E4DC] px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#2D6A4F] flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="9" fill="white" opacity=".3"/>
-              <circle cx="12" cy="12" r="6" fill="white" opacity=".6"/>
-              <circle cx="12" cy="12" r="3" fill="white"/>
-            </svg>
-          </div>
-          <span className="font-semibold text-[#1A1A2E] text-sm">Flowise</span>
-          <span className="text-[10px] border border-[#E8E4DC] text-[#9CA3AF] px-2 py-0.5 rounded-full">beta</span>
-        </div>
-        <Link href="/planos" className={`text-xs font-semibold rounded-full px-3 py-1 border transition-colors ${
-          isPro
-            ? "bg-[#2D6A4F] text-white border-[#2D6A4F]"
-            : "text-[#6B7280] border-[#E8E4DC] hover:border-[#2D6A4F] hover:text-[#2D6A4F]"
-        }`}>
-          {isPro ? "✓ Pro" : "Upgrade Pro ✨"}
-        </Link>
-      </header>
-
-      <main className="max-w-lg mx-auto px-4 py-6 flex flex-col gap-5 pb-24">
+    <>
+      <main className="max-w-lg mx-auto px-4 py-6 flex flex-col gap-5">
 
         {/* Título */}
         <div>
-          <h1 className="text-xl font-semibold text-[#1A1A2E]">Bem-estar 🌿</h1>
-          <p className="text-sm text-[#6B7280] mt-0.5">Como você está hoje?</p>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Bem-estar 🌿</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Como você está hoje?</p>
         </div>
 
         {/* Abas */}
-        <div className="flex gap-1 p-1 rounded-xl bg-white border border-[#E8E4DC]">
+        <div className="flex gap-1 p-1 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
           {[
             { key: "emocoes", label: "😌 Emoções" },
             { key: "rotina",  label: "📋 Rotina"  },
@@ -196,8 +169,8 @@ export default function BemEstarPage() {
               onClick={() => setTab(t.key)}
               className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
                 tab === t.key
-                  ? "bg-[#2D6A4F] text-white shadow-sm"
-                  : "text-[#6B7280] hover:text-[#374151]"
+                  ? "bg-green-700 dark:bg-green-700 text-white shadow-sm"
+                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               {t.label}
@@ -208,8 +181,8 @@ export default function BemEstarPage() {
         {/* ── ABA EMOÇÕES ─────────────────────────────── */}
         {tab === "emocoes" && (
           <div className="flex flex-col gap-4">
-            <div className="bg-white rounded-2xl border border-[#E8E4DC] p-5">
-              <p className="text-sm font-medium text-[#374151] mb-4">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-4">
                 Como você está se sentindo agora?
               </p>
 
@@ -222,7 +195,7 @@ export default function BemEstarPage() {
                       key={em.label}
                       onClick={() => setSelectedEmotion(active ? null : em)}
                       className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all active:scale-95 ${
-                        active ? "shadow-sm scale-105" : "border-[#E8E4DC] bg-[#FAFAF8] hover:border-[#D1CBC0]"
+                        active ? "shadow-sm scale-105" : "border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 hover:border-gray-300 dark:hover:border-gray-700"
                       }`}
                       style={active ? { borderColor: em.border, backgroundColor: em.bg } : {}}
                     >
@@ -241,9 +214,9 @@ export default function BemEstarPage() {
               {/* Nota opcional */}
               {selectedEmotion && (
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-[#374151] mb-1.5">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                     Quer adicionar uma nota?{" "}
-                    <span className="text-[#9CA3AF] font-normal">(opcional)</span>
+                    <span className="text-gray-400 dark:text-gray-500 font-normal">(opcional)</span>
                   </label>
                   <textarea
                     value={emotionNote}
@@ -253,7 +226,7 @@ export default function BemEstarPage() {
                     maxLength={200}
                     className={`${inputClass} resize-none`}
                   />
-                  <p className="text-right text-[10px] text-[#9CA3AF] mt-1">
+                  <p className="text-right text-[10px] text-gray-400 dark:text-gray-500 mt-1">
                     {emotionNote.length}/200
                   </p>
                 </div>
@@ -263,7 +236,7 @@ export default function BemEstarPage() {
               <button
                 onClick={handleSaveEmotion}
                 disabled={!selectedEmotion || savingEmotion}
-                className="w-full py-3 rounded-xl bg-[#2D6A4F] text-white text-sm font-medium transition hover:bg-[#245C44] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-xl bg-green-700 dark:bg-green-700 text-white text-sm font-medium transition hover:bg-green-800 dark:hover:bg-green-600 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {savingEmotion ? (
                   <span className="flex items-center justify-center gap-2">
@@ -277,7 +250,7 @@ export default function BemEstarPage() {
               </button>
 
               {/* Aviso de privacidade */}
-              <p className="text-[10px] text-[#9CA3AF] text-center mt-3 flex items-center justify-center gap-1">
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center mt-3 flex items-center justify-center gap-1">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="11" width="18" height="11" rx="2"/>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -288,24 +261,24 @@ export default function BemEstarPage() {
 
             {/* Histórico */}
             {recentEmotions.length > 0 && (
-              <div className="bg-white rounded-2xl border border-[#E8E4DC] p-5">
-                <p className="text-xs font-medium text-[#9CA3AF] uppercase tracking-wider mb-3">
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+                <p className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
                   Registros recentes
                 </p>
                 <div className="flex flex-col gap-2">
                   {recentEmotions.map((em) => (
                     <div
                       key={em.id}
-                      className="flex items-start gap-3 p-3 rounded-xl bg-[#FAFAF8] border border-[#E8E4DC]"
+                      className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800"
                     >
                       <span className="text-xl flex-shrink-0 mt-0.5">{em.emoji}</span>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm font-medium text-[#374151]">{em.label}</span>
-                          <span className="text-[10px] text-[#9CA3AF] flex-shrink-0">{em.date}</span>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{em.label}</span>
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500 flex-shrink-0">{em.date}</span>
                         </div>
                         {em.note && (
-                          <p className="text-xs text-[#6B7280] mt-0.5">{em.note}</p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{em.note}</p>
                         )}
                       </div>
                     </div>
@@ -318,9 +291,9 @@ export default function BemEstarPage() {
 
         {/* ── ABA ROTINA ──────────────────────────────── */}
         {tab === "rotina" && (
-          <div className="bg-white rounded-2xl border border-[#E8E4DC] p-5">
-            <p className="text-sm font-medium text-[#374151] mb-1">Configure sua rotina</p>
-            <p className="text-xs text-[#9CA3AF] mb-5">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Configure sua rotina</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-5">
               Usamos esses dados para sugerir pausas e lembretes personalizados.
             </p>
 
@@ -454,43 +427,6 @@ export default function BemEstarPage() {
           </div>
         )}
       </main>
-
-      {/* Nav inferior */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E8E4DC] flex z-50">
-        {[
-          {
-            href: "/dashboard",
-            label: "Início",
-            icon: <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M3 12L12 3L21 12V21H15V15H9V21H3V12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>,
-          },
-          {
-            href: "/bem-estar",
-            label: "Bem-estar",
-            icon: <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M12 21C12 21 4 14.5 4 8.5C4 6 6 4 8.5 4C10 4 11.5 4.8 12 6C12.5 4.8 14 4 15.5 4C18 4 20 6 20 8.5C20 14.5 12 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>,
-          },
-          {
-            href: "/relatorios",
-            label: "Relatórios",
-            icon: <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2" /><path d="M8 16V12M12 16V8M16 16V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>,
-          },
-          ...(isPro ? [{
-            href: "/agendamento",
-            label: "Agenda",
-            icon: <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M8 7V3M16 7V3M5 11H19M7 21H17C18.1 21 19 20.1 19 19V7C19 5.9 18.1 5 17 5H7C5.9 5 5 5.9 5 7V19C5 20.1 5.9 21 7 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-          }] : []),
-        ].map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 text-xs font-medium transition-colors ${
-              pathname === item.href ? "text-[#2D6A4F]" : "text-[#9CA3AF]"
-            }`}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </Link>
-        ))}
-      </nav>
-    </div>
+    </>
   );
 }

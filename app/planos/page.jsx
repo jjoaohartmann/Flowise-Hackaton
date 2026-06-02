@@ -82,7 +82,7 @@ function BottomNav() {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E8E4DC] flex z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex z-50">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         return (
@@ -159,12 +159,12 @@ export default function PlanosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0] pb-28">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-28">
 
       <Toast message={toast} type={toastType} />
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header className="bg-white border-b border-[#E8E4DC] px-4 py-3 flex items-center gap-2 sticky top-0 z-40">
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center gap-2 sticky top-0 z-40">
         <button
           onClick={() => router.back()}
           className="p-1.5 rounded-lg hover:bg-[#F7F5F0] transition-colors text-[#6B7280]"
