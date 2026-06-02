@@ -40,6 +40,7 @@ function Spinner({ color = "border-[#2D6A4F]" }) {
 // ─── Nav inferior ─────────────────────────────────────────────────────────────
 function BottomNav() {
   const pathname = usePathname();
+  const { isPro } = usePlan();
   const navItems = [
     {
       href: "/dashboard",
@@ -69,6 +70,15 @@ function BottomNav() {
         </svg>
       ),
     },
+    ...(isPro ? [{
+      href: "/agendamento",
+      label: "Agenda",
+      icon: (active) => (
+        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 7V3M16 7V3M5 11H19M7 21H17C18.1 21 19 20.1 19 19V7C19 5.9 18.1 5 17 5H7C5.9 5 5 5.9 5 7V19C5 20.1 5.9 21 7 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    }] : []),
   ];
 
   return (

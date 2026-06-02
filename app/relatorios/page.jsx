@@ -27,6 +27,7 @@ import { usePlan } from "@/lib/usePlan";
 // ─── Nav inferior ─────────────────────────────────────────────────────────────
 function BottomNav() {
   const pathname = usePathname();
+  const { isPro } = usePlan();
   const navItems = [
     {
       href: "/dashboard",
@@ -49,6 +50,13 @@ function BottomNav() {
         <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2" /><path d="M8 16V12M12 16V8M16 16V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
       ),
     },
+    ...(isPro ? [{
+      href: "/agendamento",
+      label: "Agenda",
+      icon: (
+        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M8 7V3M16 7V3M5 11H19M7 21H17C18.1 21 19 20.1 19 19V7C19 5.9 18.1 5 17 5H7C5.9 5 5 5.9 5 7V19C5 20.1 5.9 21 7 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      ),
+    }] : []),
   ];
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E8E4DC] flex z-50">
