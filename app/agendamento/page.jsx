@@ -91,7 +91,7 @@ function FlowiseHeader({ user, isPro, onLogout }) {
   );
 }
 
-function BottomNav() {
+function BottomNav({ isPro }) {
   const pathname = usePathname();
 
   const navItems = [
@@ -115,6 +115,23 @@ function BottomNav() {
         </>
       ),
     },
+    ...(isPro
+      ? [
+          {
+            href: "/agendamento",
+            label: "Agenda",
+            icon: (
+              <path
+                d="M8 7V3M16 7V3M5 11H19M7 21H17C18.1 21 19 20.1 19 19V7C19 5.9 18.1 5 17 5H7C5.9 5 5 5.9 5 7V19C5 20.1 5.9 21 7 21Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -247,7 +264,7 @@ export default function AgendamentoPage() {
         </section>
       </main>
 
-      <BottomNav />
+      <BottomNav isPro={isPro} />
       <ComingSoonModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
