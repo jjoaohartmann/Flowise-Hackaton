@@ -3,8 +3,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { usePlan } from "@/lib/usePlan";
 import { savePlan } from "@/lib/planos";
@@ -37,71 +35,6 @@ function Spinner({ color = "border-[#2D6A4F]" }) {
   );
 }
 
-// ─── Nav inferior ─────────────────────────────────────────────────────────────
-function BottomNav() {
-  const pathname = usePathname();
-  const { isPro } = usePlan();
-  const navItems = [
-    {
-      href: "/dashboard",
-      label: "Início",
-      icon: (active) => (
-        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 12L12 3L21 12V21H15V15H9V21H3V12Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-        </svg>
-      ),
-    },
-    {
-      href: "/bem-estar",
-      label: "Bem-estar",
-      icon: (active) => (
-        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 21C12 21 4 14.5 4 8.5C4 6 6 4 8.5 4C10 4 11.5 4.8 12 6C12.5 4.8 14 4 15.5 4C18 4 20 6 20 8.5C20 14.5 12 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-        </svg>
-      ),
-    },
-    {
-      href: "/relatorios",
-      label: "Relatórios",
-      icon: (active) => (
-        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2" />
-          <path d="M8 16V12M12 16V8M16 16V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      ),
-    },
-    ...(isPro ? [{
-      href: "/agendamento",
-      label: "Agenda",
-      icon: (active) => (
-        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 7V3M16 7V3M5 11H19M7 21H17C18.1 21 19 20.1 19 19V7C19 5.9 18.1 5 17 5H7C5.9 5 5 5.9 5 7V19C5 20.1 5.9 21 7 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      ),
-    }] : []),
-  ];
-
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 flex z-50">
-      {navItems.map((item) => {
-        const isActive = pathname === item.href;
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 text-xs font-medium transition-colors ${
-              isActive ? "text-[#2D6A4F]" : "text-[#9CA3AF]"
-            }`}
-          >
-            {item.icon(isActive)}
-            <span>{item.label}</span>
-          </Link>
-        );
-      })}
-    </nav>
-  );
-}
-
 // ─── Toast ────────────────────────────────────────────────────────────────────
 function Toast({ message, type = "success" }) {
   if (!message) return null;
@@ -117,7 +50,7 @@ function Toast({ message, type = "success" }) {
 export default function PlanosPage() {
   const router    = useRouter();
   const { user }  = useAuth();
-  const { plan, isPro, loading } = usePlan();
+  const { plan, isPro, loading, refreshPlan } = usePlan();
 
   const [simulating, setSimulating] = useState(false);
   const [toast, setToast]           = useState(null);
@@ -137,6 +70,7 @@ export default function PlanosPage() {
       // Delay fake de "processamento de pagamento" (2 segundos)
       await new Promise((r) => setTimeout(r, 2000));
       await savePlan(user.uid, "pro");
+      refreshPlan(); // atualiza o estado do plano imediatamente
       showToast("🎉 Bem-vindo ao Flowise Pro!", "success");
     } catch (err) {
       console.error(err);
@@ -151,6 +85,7 @@ export default function PlanosPage() {
     if (!user) return;
     try {
       await savePlan(user.uid, "free");
+      refreshPlan(); // atualiza o estado do plano imediatamente
       showToast("Plano alterado para Gratuito.", "info");
     } catch (err) {
       console.error(err);
@@ -388,7 +323,6 @@ export default function PlanosPage() {
         </div>
       </div>
 
-      <BottomNav />
     </div>
   );
 }
