@@ -42,7 +42,13 @@ function clearTimerState() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-export default function FocusTimer({ onSessionComplete, onRunningChange }) {
+export default function FocusTimer({
+  onSessionComplete,
+  onRunningChange,
+  onContinuousFocusChange,
+  mandatoryBreak = false,
+  onMandatoryBreakAccept,
+}) {
   const [modeKey, setModeKey]               = useState("FOCUS");
   const [timeLeft, setTimeLeft]             = useState(SESSIONS.FOCUS.seconds);
   const [isRunning, setIsRunning]           = useState(false);
@@ -51,6 +57,9 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
   const [continuousFocusMinutes, setContinuousFocusMinutes] = useState(0);
   const [showSaturationAlert, setShowSaturationAlert] = useState(false);
   const [dismissedSaturationAlert, setDismissedSaturationAlert] = useState(false);
+  const [showMandatoryBreakModal, setShowMandatoryBreakModal] = useState(false);
+  const mandatoryBreakRef = useRef(mandatoryBreak);
+  mandatoryBreakRef.current = mandatoryBreak;
 
   const startTimeRef               = useRef(null);
   const timeLeftRef                = useRef(timeLeft);
@@ -142,7 +151,22 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
     onRunningChange?.(isRunning);
   }, [isRunning, onRunningChange]);
 
-  // ── useEffect 4: título da aba ────────────────────────────
+  // ── useEffect 4: propaga continuousFocusMinutes ─────────
+  useEffect(() => {
+    onContinuousFocusChange?.(continuousFocusMinutes);
+  }, [continuousFocusMinutes, onContinuousFocusChange]);
+
+  // ── useEffect 5: modal de pausa obrigatória ─────────────
+  useEffect(() => {
+    if (mandatoryBreak && isRunning && modeKey === "FOCUS") {
+      // Força pausa: para o timer e mostra modal
+      setIsRunning(false);
+      clearTimerState();
+      setShowMandatoryBreakModal(true);
+    }
+  }, [mandatoryBreak, isRunning, modeKey]);
+
+  // ── useEffect 6: título da aba ────────────────────────────
   useEffect(() => {
     document.title = isRunning
       ? `${formatTime(timeLeft)} — ${mode.label} | Flowise`
@@ -187,6 +211,47 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
 
   return (
     <div className="flex flex-col items-center gap-6 w-full">
+
+      {/* ── RN-PREDICT-01: Modal de pausa obrigatória ── */}
+      {showMandatoryBreakModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-red-200 dark:border-red-800 shadow-2xl p-6 mx-4 max-w-sm w-full animate-in zoom-in-95 duration-300">
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center text-3xl">
+                🛑
+              </div>
+              <div>
+                <p className="text-lg font-bold text-red-700 dark:text-red-400">Pausa Obrigatória</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">
+                  Nosso algoritmo preditivo detectou risco de exaustão. Sua mente precisa de uma pausa agora.
+                </p>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 w-full">
+                O cronômetro foi pausado automaticamente. Você será redirecionado para uma pausa de 10 minutos.
+              </p>
+              <button
+                onClick={() => {
+                  setShowMandatoryBreakModal(false);
+                  onMandatoryBreakAccept?.();
+                  switchMode("LONG_BREAK", true);
+                }}
+                className="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-all active:scale-[0.98]"
+              >
+                Iniciar pausa de 15 min
+              </button>
+              <button
+                onClick={() => {
+                  setShowMandatoryBreakModal(false);
+                  onMandatoryBreakAccept?.();
+                }}
+                className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+              >
+                Entendi, vou parar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── RN-SATURA\u00c7\u00c3O-01: Alerta de saturação de foco ── */}
       {showSaturationAlert && !dismissedSaturationAlert && (

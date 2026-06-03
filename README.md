@@ -20,9 +20,9 @@ Profissionais e estudantes enfrentam dificuldade em manter o foco, gerenciar a s
 | Nome | GitHub |
 |------|--------|
 | João Victor Prange Hartmann | [@jjoaohartmann](https://github.com/jjoaohartmann) |
-| Maria Eduarda Tessari | [@jjoaohartmann](https://github.com/jjoaohartmann) |
-| Júlia Verissimo | [@jjoaohartmann](https://github.com/jjoaohartmann) |
-| Fernando Rateke | [@jjoaohartmann](https://github.com/jjoaohartmann) |
+| Maria Eduarda Tessari | [@MariaTessari](https://github.com/MariaTessari) |
+| Júlia Verissimo | [@juliaverissimo](https://github.com/juliaverissimo) |
+| Fernando Rateke 
 
 > *Projeto desenvolvido para o Hackathon Flowise.*
 
