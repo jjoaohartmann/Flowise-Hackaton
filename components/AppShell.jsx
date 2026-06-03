@@ -7,7 +7,7 @@ export default function AppShell({ children }) {
   const pathname = usePathname();
 
   // Páginas que NÃO usam o shell com NavBar
-  const noShellPages = ["/login", "/signup", "/planos"];
+  const noShellPages = ["/login", "/signup"];
   if (noShellPages.includes(pathname)) {
     return <>{children}</>;
   }

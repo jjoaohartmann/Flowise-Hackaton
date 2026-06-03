@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { usePlan } from "@/lib/usePlan";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 import { logout } from "@/lib/auth";
-import { Heart, User } from "lucide-react";
+import { Heart, User, MessageCircle } from "lucide-react";
 
 export default function NavBar() {
   const { user, loading } = useAuth();
@@ -15,7 +15,7 @@ export default function NavBar() {
   const router = useRouter();
 
   // Páginas que não precisam de navbar (login, signup, etc)
-  const noNavbarPages = ["/login", "/signup", "/planos"];
+  const noNavbarPages = ["/login", "/signup"];
   const shouldShowNavbar = !noNavbarPages.includes(pathname);
 
   async function handleLogout() {
@@ -86,6 +86,11 @@ export default function NavBar() {
             href: "/bem-estar",
             label: "Bem-estar",
             icon: <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M12 21C12 21 4 14.5 4 8.5C4 6 6 4 8.5 4C10 4 11.5 4.8 12 6C12.5 4.8 14 4 15.5 4C18 4 20 6 20 8.5C20 14.5 12 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" /></svg>,
+          },
+          {
+            href: "/chat",
+            label: "Chat IA",
+            icon: <MessageCircle size={20} />,
           },
           {
             href: "/relatorios",
