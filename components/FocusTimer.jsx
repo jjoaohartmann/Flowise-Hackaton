@@ -272,15 +272,15 @@ export default function FocusTimer({
       )}
 
       {/* Seletor de modo */}
-      <div className="flex gap-1.5 p-1 bg-[#F7F5F0] border border-[#E8E4DC] rounded-2xl">
+      <div className="flex gap-1.5 p-1 bg-[#F7F5F0] dark:bg-gray-800 border border-[#E8E4DC] dark:border-gray-700 rounded-2xl">
         {Object.entries(SESSIONS).map(([key, s]) => (
           <button
             key={key}
             onClick={() => switchMode(key)}
             className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
               modeKey === key
-                ? "bg-white shadow-sm border border-[#E8E4DC] text-[#1A1A2E]"
-                : "text-[#9CA3AF] hover:text-[#374151]"
+                ? "bg-white dark:bg-gray-700 shadow-sm border border-[#E8E4DC] dark:border-gray-600 text-[#1A1A2E] dark:text-white"
+                : "text-[#9CA3AF] hover:text-[#374151] dark:hover:text-gray-200"
             }`}
           >
             {s.label}
@@ -301,7 +301,7 @@ export default function FocusTimer({
               <stop offset="100%" stopColor={ringColor} stopOpacity="0.4" />
             </linearGradient>
           </defs>
-          <circle cx="104" cy="104" r={radius} fill="none" stroke="#E8E4DC" strokeWidth="8" />
+          <circle cx="104" cy="104" r={radius} fill="none" stroke="#E8E4DC" className="dark:stroke-gray-700" strokeWidth="8" />
           <circle
             cx="104" cy="104" r={radius}
             fill="none"
@@ -315,7 +315,7 @@ export default function FocusTimer({
         </svg>
 
         <div className="flex flex-col items-center z-10 select-none">
-          <span className="text-5xl font-semibold tracking-tight text-[#1A1A2E] tabular-nums">
+          <span className="text-5xl font-semibold tracking-tight tabular-nums" style={{ color: "var(--text-primary)" }}>
             {formatTime(timeLeft)}
           </span>
           <span className="text-xs mt-1.5 font-medium" style={{ color: ringColor }}>
@@ -344,7 +344,7 @@ export default function FocusTimer({
                 className={`h-1.5 rounded-full transition-all duration-500 ${
                   current ? "w-5 bg-emerald-500"
                   : filled ? "w-3 bg-emerald-400"
-                  : "w-3 bg-[#E8E4DC]"
+                  : "w-3 bg-[#E8E4DC] dark:bg-gray-600"
                 }`}
               />
             );
@@ -360,7 +360,7 @@ export default function FocusTimer({
       <div className="flex items-center gap-4">
         <button
           onClick={resetTimer}
-          className="w-10 h-10 rounded-full border border-[#E8E4DC] bg-white flex items-center justify-center text-[#9CA3AF] hover:text-[#6B7280] hover:bg-[#F7F5F0] transition-all active:scale-95"
+          className="w-10 h-10 rounded-full border border-[#E8E4DC] dark:border-gray-600 bg-white dark:bg-gray-800 flex items-center justify-center text-[#9CA3AF] hover:text-[#6B7280] dark:hover:text-gray-300 hover:bg-[#F7F5F0] dark:hover:bg-gray-700 transition-all active:scale-95"
           aria-label="Reiniciar"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -393,9 +393,9 @@ export default function FocusTimer({
           )}
         </button>
 
-        <div className="w-10 h-10 rounded-full border border-[#E8E4DC] bg-white flex flex-col items-center justify-center">
-          <span className="text-xs font-semibold text-[#1A1A2E] leading-none">{totalPomodoros}</span>
-          <span className="text-[8px] text-[#9CA3AF] leading-none">hoje</span>
+        <div className="w-10 h-10 rounded-full border border-[#E8E4DC] dark:border-gray-600 bg-white dark:bg-gray-800 flex flex-col items-center justify-center">
+          <span className="text-xs font-semibold text-[#1A1A2E] dark:text-white leading-none">{totalPomodoros}</span>
+          <span className="text-[8px] text-[#9CA3AF] dark:text-gray-400 leading-none">hoje</span>
         </div>
       </div>
     </div>
