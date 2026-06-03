@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   updateProfile,
   sendPasswordResetEmail,
@@ -268,10 +269,11 @@ export default function PerfilPage() {
           <div className="flex items-center gap-4">
             <div className="relative w-16 h-16 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-700">
               {profile.photoURL ? (
-                <img
+                <Image
                   src={profile.photoURL}
                   alt="Foto de perfil"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                   onError={(e) => {
                     e.target.style.display = "none";
                   }}

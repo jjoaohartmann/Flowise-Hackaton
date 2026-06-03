@@ -52,9 +52,16 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
   const [showSaturationAlert, setShowSaturationAlert] = useState(false);
   const [dismissedSaturationAlert, setDismissedSaturationAlert] = useState(false);
 
-  const startTimeRef   = useRef(null);
-  const initialTimeRef = useRef(timeLeft);
-  const focusStartRef  = useRef(null);
+  const startTimeRef               = useRef(null);
+  const timeLeftRef                = useRef(timeLeft);
+  const initialTimeRef             = useRef(timeLeft);
+  const focusStartRef              = useRef(null);
+  const showSaturationAlertRef     = useRef(showSaturationAlert);
+  const dismissedSaturationRef     = useRef(dismissedSaturationAlert);
+  const handleSessionEndRef        = useRef(null);
+  timeLeftRef.current              = timeLeft;
+  showSaturationAlertRef.current   = showSaturationAlert;
+  dismissedSaturationRef.current   = dismissedSaturationAlert;
 
   const mode         = SESSIONS[modeKey];
   const total        = mode.seconds;
@@ -89,7 +96,7 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
     }
 
     startTimeRef.current   = Date.now();
-    initialTimeRef.current = timeLeft;
+    initialTimeRef.current = timeLeftRef.current;
 
     // ── RN-SATURA\u00c7\u00c3O-01: Iniciar rastreamento de foco cont\u00ednuo ──
     if (modeKey === "FOCUS" && !focusStartRef.current) {
@@ -97,7 +104,7 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
     }
 
     // Salva no localStorage quando vai terminar
-    const endTime = Date.now() + timeLeft * 1000;
+    const endTime = Date.now() + timeLeftRef.current * 1000;
     saveTimerState(modeKey, endTime);
 
     const interval = setInterval(() => {
@@ -111,7 +118,7 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
         setContinuousFocusMinutes(continuousMin);
 
         // Mostrar alerta se 2h+ de foco cont\u00ednuo
-        if (continuousMin >= 120 && !dismissedSaturationAlert && !showSaturationAlert) {
+        if (continuousMin >= 120 && !dismissedSaturationRef.current && !showSaturationAlertRef.current) {
           setShowSaturationAlert(true);
         }
       }
@@ -121,7 +128,7 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
         clearTimerState();
         setTimeLeft(0);
         setIsRunning(false);
-        handleSessionEnd();
+        handleSessionEndRef.current?.();
       } else {
         setTimeLeft(remaining);
       }
@@ -133,7 +140,7 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
   // ── useEffect 3: propaga estado running para o dashboard ──
   useEffect(() => {
     onRunningChange?.(isRunning);
-  }, [isRunning]);
+  }, [isRunning, onRunningChange]);
 
   // ── useEffect 4: título da aba ────────────────────────────
   useEffect(() => {
@@ -141,7 +148,7 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
       ? `${formatTime(timeLeft)} — ${mode.label} | Flowise`
       : "Flowise";
     return () => { document.title = "Flowise"; };
-  }, [timeLeft, isRunning]);
+  }, [timeLeft, isRunning, mode.label]);
 
   // ── Lógica ao terminar uma sessão ────────────────────────
   function handleSessionEnd() {
@@ -161,6 +168,7 @@ export default function FocusTimer({ onSessionComplete, onRunningChange }) {
       switchMode("FOCUS", false);
     }
   }
+  handleSessionEndRef.current = handleSessionEnd;
 
   function switchMode(key, autoStart = false) {
     clearTimerState();

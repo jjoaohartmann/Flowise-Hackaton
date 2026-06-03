@@ -313,7 +313,7 @@ export default function PlanosPage() {
             <li className="flex items-start gap-2.5">
               <CheckIcon white />
               <span className="text-sm text-white">
-                <strong>Detecção de cansaço</strong> — alerta ⚠️ automático quando ≥ 3 dos últimos 5 registros indicam "Cansado" ou "Estressado"
+                <strong>Detecção de cansaço</strong> — alerta ⚠️ automático quando ≥ 3 dos últimos 5 registros indicam &ldquo;Cansado&rdquo; ou &ldquo;Estressado&rdquo;
               </span>
             </li>
             <li className="flex items-start gap-2.5">

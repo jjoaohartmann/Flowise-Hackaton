@@ -71,7 +71,7 @@ export default function DashboardPage() {
     }
 
     init();
-  }, [user, loading]);
+  }, [user, loading, router]);
 
   // ── Callback do FocusTimer: grava sessão no Firestore ─────
   //

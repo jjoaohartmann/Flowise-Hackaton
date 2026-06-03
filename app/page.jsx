@@ -11,7 +11,7 @@ export default function HomePage() {
   useEffect(() => {
     if (loading) return;
     router.replace(user ? "/dashboard" : "/login");
-  }, [user, loading]);
+  }, [user, loading, router]);
 
   return (
     <div className="min-h-screen bg-[#F7F5F0] flex items-center justify-center">
